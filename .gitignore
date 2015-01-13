@@ -27,3 +27,14 @@
 *.i*86
 *.x86_64
 *.hex
+
+# System Metadata
+Thumbs.db
+ehthumbs.db
+.DS_Store
+
+# Text Editor Backup
+*.s[a-w][a-z]
+*~
+\#*\#
+.\#*
