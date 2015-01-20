@@ -1,0 +1,2 @@
+#define WINDOW_X_SIZE 1000
+#define WINDOW_Y_SIZE 600

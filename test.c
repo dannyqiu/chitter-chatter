@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include "constants.h"
 
 /* This is a callback function. The data arguments are ignored
  * in this example. More on callbacks below.
@@ -22,8 +23,7 @@ static gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer da
   return TRUE;
 }
 
-int
-main (int argc, char *argv[]) {
+int main (int argc, char *argv[]) {
 
     /* GtkWidget is the storage type for widgets */
     GtkWidget *window;
@@ -37,6 +37,8 @@ main (int argc, char *argv[]) {
     /* create a new window, and set its title */
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title (GTK_WINDOW (window), "Hello");
+    gtk_window_set_default_size(GTK_WINDOW(window), WINDOW_X_SIZE, WINDOW_Y_SIZE); // Make this variable
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
     /* When the window emits the "delete-event" signal (which is emitted
     * by GTK+ in response to an event coming from the window manager,
