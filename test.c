@@ -26,13 +26,17 @@ static gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer da
 int main (int argc, char *argv[]) {
 
     /* GtkWidget is the storage type for widgets */
+    GtkWidget *grid;
     GtkWidget *window;
     GtkWidget *button;
+    GtkWidget *chatbox;
+    GtkTextBuffer *buffer;
 
     /* This is called in all GTK applications. Arguments are parsed
     * from the command line and are returned to the application.
     */
     gtk_init (&argc, &argv);
+
 
     /* create a new window, and set its title */
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -62,7 +66,10 @@ int main (int argc, char *argv[]) {
 
     /* Creates a new button with the label "Hello World". */
     button = gtk_button_new_with_label ("Hello World");
-
+    chatbox = gtk_text_view_new();
+    buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(chatbox));
+    //gtk_text_buffer_set_text("This is text blah",-1);
+    
     /* When the button receives the "clicked" signal, it will call the
     * function print_hello() passing it NULL as its argument.
     *
@@ -78,16 +85,22 @@ int main (int argc, char *argv[]) {
     */
     g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_widget_destroy), window);
 
+
+    //GRID STUFF 
+    grid = gtk_grid_new();
+    gtk_grid_attach(GTK_GRID(grid), button, 1, 1, 1, 1);
+    gtk_grid_attach_next_to(GTK_GRID(grid), chatbox, button, GTK_POS_BOTTOM, 1, 1);
+
     /* This packs the button into the window. A GtkWindow inherits from GtkBin,
     * which is a special container that can only have one child
     */
-    gtk_container_add (GTK_CONTAINER (window), button);
+    gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(grid));
 
     /* The final step is to display this newly created widget... */
-    gtk_widget_show (button);
-
+    //gtk_widget_show (button);
+    //gtk_widget_show(chatbox);
     /* ... and the window */
-    gtk_widget_show (window);
+    gtk_widget_show_all(window);
 
     /* All GTK applications must have a gtk_main(). Control ends here
     * and waits for an event to occur (like a key press or a mouse event),
