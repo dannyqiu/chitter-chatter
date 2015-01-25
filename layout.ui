@@ -5,15 +5,44 @@
         <property name="default-width">1000</property>
         <property name="default-height">600</property>
         <child>
+            <object id="clients" class="GtkListStore">
+                <columns>
+                    <!-- column-name Testing -->
+                    <column type="gchararray"/>
+                </columns>
+            </object>
             <object id="grid" class="GtkGrid">
                 <property name="visible">True</property>
+                <property name="expand">True</property>
                 <property name="column-spacing">15</property>
+                <property name="row-spacing">15</property>
                 <child>
-                    <!--Instead of labels, we should use ScrolledWindow with a TreeView inside for the left col, label is placeholder-->
-                    <object id="clients" class="GtkLabel">
+                    <object id="clientwindow" class="GtkScrolledWindow">
                         <property name="visible">True</property>
-                        <property name="width-chars">30</property>
-                    <property name="label">List of Clients</property>
+                        <property name="expand">True</property>
+                        <child>
+                            <object id="clienttree" class="GtkTreeView">
+                                <property name="visible">True</property>
+                                <property name="model">clients</property>
+                                <child>
+                                    <object id="test-column" class="GtkTreeViewColumn">
+                                        <property name="title">Available Clients</property>
+                                        <property name="expand">True</property>
+                                        <child>
+                                            <object id="test-renderer" class="GtkCellRendererText"/>
+                                            <attributes>
+                                                <attribute name="text">1</attribute>
+                                            </attributes>
+                                        </child>
+                                    </object>  
+                                </child>
+                                <child internal-child="selection">
+                                    <object id= "selection" class="GtkTreeSelection">
+                                        <signal name="changed" handler="on_treeview_selection_changed"/>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
                     </object>
                     <packing>
                         <property name="left-attach">0</property>
@@ -24,6 +53,8 @@
                 <child>
                     <object id="chatlog" class="GtkTextView">
                         <property name="visible">True</property>
+                        <property name="expand">True</property>
+                        <property name="border-width">5</property>
                         <property name="editable">False</property>
                         <property name="cursor-visible">False</property>
                         <property name="wrap-mode">GTK_WRAP_WORD</property>
@@ -48,6 +79,7 @@
                 <child>
                     <object id="control1" class="GtkButton">
                         <property name="visible">True</property>
+                        <property name="expand">True</property>
                         <property name="label">Control Panel</property>
                     </object>
                     <packing>
