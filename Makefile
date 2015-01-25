@@ -1,6 +1,6 @@
-GTK_FLAGS=`pkg-config --cflags gtk+-3.0`
+GTK_FLAGS=`pkg-config --cflags gtk+-3.0 gmodule-export-2.0`
 GTK_LIBS=`pkg-config --libs gtk+-3.0`
-FLAGS=-Wall -Wno-unused-variable -Wno-unused-function
+FLAGS=-Wall -Wno-unused-variable -Wno-unused-function -rdynamic
 UTIL_FILES = util.c
 
 test: clean test.c
