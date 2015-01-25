@@ -64,7 +64,7 @@ int main() {
                         }
                         char ip_buffer[INET_ADDRSTRLEN];
                         inet_ntop(AF_INET, &(cli_addr.sin_addr), ip_buffer, INET_ADDRSTRLEN);
-                        printf("Connected to %s\n", ip_buffer);
+                        printf("Connected to %s on %d\n", ip_buffer, cli_sock);
                     }
         
                 }
@@ -87,9 +87,7 @@ int main() {
                         printf("[RECEIVED FROM %d]: %s", currentfd, buffer);
                         int recipient;
                         for (recipient=0; recipient<=fdmax; ++recipient) {
-                            // Uncomment the below line when implemented. We don't want clients having an echo??
-                            //if (FD_ISSET(recipient, &masterfds) && recipient != currentfd && recipient != listen_sock) {
-                            if (FD_ISSET(recipient, &masterfds) && recipient != listen_sock) {
+                            if (FD_ISSET(recipient, &masterfds) && recipient != currentfd && recipient != listen_sock) {
                                 if (send(recipient, buffer, sizeof(buffer), 0) < 0) {
                                     print_error("Problem sending data to client");
                                 }
