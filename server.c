@@ -71,7 +71,7 @@ int main() {
                 else {
 
                     /* Get data from client and forward to all other clients */
-                    char buffer[1024];
+                    char buffer[MSG_SIZE];
                     int nbytes = recv(currentfd, buffer, sizeof(buffer), 0);
                     if (nbytes <= 0) {
                         if (nbytes == 0) {
