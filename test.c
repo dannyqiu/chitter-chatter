@@ -9,6 +9,15 @@ print_hello (GtkWidget *widget, gpointer data) {
     g_print ("Hello World\n");
 }
 
+static gboolean
+key_event(GtkWidget *widget,
+          GdkEventKey *event)
+{
+  g_printerr("%s\n",
+	     gdk_keyval_name (event->keyval));
+  return FALSE;
+}
+
 static gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data) {
   /* If you return FALSE in the "delete_event" signal handler,
    * GTK will emit the "destroy" signal. Returning TRUE means
@@ -35,12 +44,14 @@ int main (int argc, char *argv[]) {
     * from the command line and are returned to the application.
     */
     gtk_init (&argc, &argv);
-    builder = gtk_builder_new_from_file("layout.ui"); 
+    builder = gtk_builder_new();
+    gtk_builder_add_from_file(builder , "layout.ui" , NULL); 
     buffer = gtk_text_buffer_new(NULL);
 
     chatlog = gtk_builder_get_object(builder, "chatlog");
     chatbox = gtk_builder_get_object(builder, "chatbox");
-    
+    window = gtk_builder_get_object(builder, "window");
+
     gtk_text_buffer_set_text(buffer, "[21:00] alvin: haha you know that isnt true\n[21:01] bob: ofc it is what r u saying",-1);
     gtk_text_view_set_buffer(GTK_TEXT_VIEW(chatlog), buffer); 
 
@@ -55,6 +66,9 @@ int main (int argc, char *argv[]) {
     * in the callback function.
     */
     g_signal_connect (window, "delete-event", G_CALLBACK (on_delete_event), NULL);
+
+    //Adding keypress catching for enter later on
+    g_signal_connect(window, "key-release-event", G_CALLBACK(key_event), NULL);
 
     /* Here we connect the "destroy" event to the gtk_main_quit() function.
     *

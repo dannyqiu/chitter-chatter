@@ -31,13 +31,14 @@
                     <packing>
                         <property name="left-attach">1</property>
                         <property name="top-attach">0</property>
+                        
                     </packing>
                 </child>
                 <child>
                     <object id="chatbox" class="GtkEntry">
                         <property name="visible">True</property>
-                        <property name="width-chars">60</property>
-                        <property name="max-width-chars">60</property>
+                        <property name="width-chars">10</property>
+                        <property name="max-width-chars">50</property>
                     </object>
                     <packing>
                         <property name="left-attach">1</property>
