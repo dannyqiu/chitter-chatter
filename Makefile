@@ -7,10 +7,13 @@ test: clean test.c
 	mkdir -p build
 	gcc $(FLAGS) $(GTK_FLAGS) -o build/test test.c $(GTK_LIBS)
 
-all: setup server
+all: setup server client
 
 server: server.h server.c
 	gcc $(FLAGS) -o build/server server.c $(UTIL_FILES)
+
+client: client.h client.c
+	gcc $(FLAGS) -o build/client client.c $(UTIL_FILES)
 
 setup:
 	mkdir -p build

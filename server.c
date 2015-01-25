@@ -36,10 +36,18 @@ int main() {
     if (cli_sock < 0) {
         print_error("Problem accepting connection");
     }
+    else {
+        char ip_buffer[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(cli_addr.sin_addr), ip_buffer, INET_ADDRSTRLEN);
+        printf("Connected to %s\n", ip_buffer);
+    }
 
-    char buffer[1024];
-    read(cli_sock, buffer, sizeof(buffer));
-    printf("Read: %s\n", buffer);
+    while (1) {
+        char buffer[1024];
+        read(cli_sock, buffer, sizeof(buffer));
+        printf("Read: %s\n", buffer);
+        write(cli_sock, buffer, sizeof(buffer));
+    }
 
     return 0;
 }
