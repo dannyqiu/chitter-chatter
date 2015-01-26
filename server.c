@@ -13,6 +13,10 @@ static void signal_handler(int signo) {
             close(listen_sock);
             cleanup();
             exit(0);
+        case SIGSEGV:
+            shutdown(listen_sock, SHUT_RDWR);
+            close(listen_sock);
+            exit(1);
     }
 }
 
@@ -50,6 +54,7 @@ int is_client_id_taken(int client_id) {
 
 int main() {
     signal(SIGINT, signal_handler);
+    signal(SIGSEGV, signal_handler);
     struct sockaddr_in serv_addr, cli_addr; // Server address, Client address
     socklen_t cli_len;                      // Client address length
     fd_set masterfds, readfds;              // FD sets for master, read
