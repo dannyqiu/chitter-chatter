@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <string.h>
 #include "constants.h"
 
 /* This is a callback function. The data arguments are ignored
@@ -6,6 +7,33 @@
  */
 void print_hello (GtkWidget *widget, gpointer data) {
     g_print ("Hello World\n");
+}
+
+void append_to_buffer(GtkEntry *chatbox){
+    const gchar *message;
+    GtkTextIter *chat_start;
+    GtkTextIter *chat_end;
+
+    //get textview + buffer
+    //GtkWidget *window = gtk_widget_get_toplevel((GtkWidget*)chatbox);
+    GtkGrid *grid = (GtkGrid *)gtk_widget_get_parent((GtkWidget*)chatbox);
+    g_print("Got grid...\n");  
+    GtkTextView *chatlog = (GtkTextView*)gtk_bin_get_child((GtkBin*)gtk_grid_get_child_at(grid,1,0));
+    g_print("Got Textview\n");
+    GtkTextBuffer * chat_buffer = gtk_text_view_get_buffer(chatlog); 
+    g_print("Got buffer\n");
+    if(chat_buffer == NULL){
+        g_print("NULLLLL\n");
+    }
+
+    gtk_text_buffer_get_iter_at_offset(chat_buffer, chat_start,0);
+    
+    g_print("Get start iter\n");
+    //gtk_text_buffer_get_end_iter(chat_buffer, chat_end);
+    //g_print("Got iters\n");
+     
+    message = gtk_entry_get_text(chatbox);
+    g_print("Append: %s\n",message);
 }
 
 void on_clientlist_selection_changed(GtkWidget *widget, gpointer data){
@@ -17,6 +45,9 @@ gboolean key_event(GtkWidget *widget,
 {
   g_printerr("%s\n",
 	     gdk_keyval_name (event->keyval));
+  if(strcmp(gdk_keyval_name(event->keyval),"Return")==0){
+      append_to_buffer((GtkEntry*)widget);
+  }
   return FALSE;
 }
 
