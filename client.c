@@ -77,7 +77,7 @@ int main() {
     else { // Child handles receiving
         while (1) {
             struct chat_packet package;
-            int nbytes = recv(sock_fd, &package, sizeof(package), 0);
+            int nbytes = recv(sock_fd, &package, sizeof(struct chat_packet), 0);
             if (nbytes <= 0) {
                 if (nbytes == 0) {
                     printf("Connection closed by the server :(");
@@ -89,10 +89,10 @@ int main() {
                 exit(1);
             }
             else {
-                char *recv_message = (char *) malloc(package.total * MSG_SIZE * sizeof(char));
+                char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
                 strncpy(recv_message, package.message, MSG_SIZE);
                 while (package.sequence < package.total) {
-                    recv(sock_fd, &package, sizeof(package), 0);
+                    recv(sock_fd, &package, sizeof(struct chat_packet), 0);
                     strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
                 }
                 printf("\nReceived: %s\n", recv_message);
@@ -115,6 +115,6 @@ void send_message_to_server(int sock_fd, char *message, size_t message_len) {
         package.client_id = client_id;
         package.channel_id = current_channel;
         strncpy(package.message, message + (n * MSG_SIZE), MSG_SIZE);
-        send(sock_fd, &package, sizeof(package), 0);
+        send(sock_fd, &package, sizeof(struct chat_packet), 0);
     }
 }

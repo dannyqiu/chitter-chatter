@@ -184,14 +184,14 @@ int main() {
 
 char * receive_message_from_client(int listen_fd, struct chat_packet package) {
     printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", listen_fd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
-    char *recv_message = (char *) malloc(package.total * MSG_SIZE * sizeof(char));
+    char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
     strncpy(recv_message, package.message, MSG_SIZE);
     while (package.sequence < package.total) {
-        recv(listen_fd, &package, sizeof(package), 0);
+        recv(listen_fd, &package, sizeof(struct chat_packet), 0);
         strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
         printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", listen_fd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
     }
-    printf("[COMBINED MESSAGE FROM %d]: %s\n", listen_fd, recv_message);
+    //printf("[COMBINED MESSAGE FROM %d]: %s\n", listen_fd, recv_message);
     return recv_message;
 }
 
@@ -206,6 +206,6 @@ void send_message_to_client(int sock_fd, char *message, size_t message_len, int 
         package.client_id = client_id;
         package.channel_id = channel_id;
         strncpy(package.message, message + (n * MSG_SIZE), MSG_SIZE);
-        send(sock_fd, &package, sizeof(package), 0);
+        send(sock_fd, &package, sizeof(struct chat_packet), 0);
     }
 }
