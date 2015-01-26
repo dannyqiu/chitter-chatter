@@ -2,14 +2,51 @@
 #include "util.h"
 #include "constants.h"
 
-int listen_sock, cli_sock;              // Server listen sock, New client sock
+int listen_sock, cli_sock; // Server listen sock, New client sock
+
+struct client **client_list;
+int num_clients;
 
 static void signal_handler(int signo) {
     switch (signo) {
         case SIGINT:
+            shutdown(listen_sock, SHUT_RDWR);
             close(listen_sock);
+            cleanup();
             exit(0);
     }
+}
+
+void cleanup() {
+    for (; num_clients > 0; --num_clients) {
+        free(client_list[num_clients-1]);
+    }
+    free(client_list);
+}
+
+int add_client(int fd) {
+    int client_id = rand();
+    while (is_client_id_taken(client_id)) {
+        client_id = rand();
+    }
+    ++num_clients;
+    client_list = (struct client **) realloc(client_list, num_clients * sizeof(struct client *));
+    struct client *new_client = (struct client *) malloc(sizeof(struct client));
+    new_client->cli_sock = fd;
+    new_client->cli_id = client_id;
+    new_client->channels = NULL;
+    client_list[num_clients-1] = new_client;
+    return client_id;
+}
+
+int is_client_id_taken(int client_id) {
+    int i;
+    for (i=0; i<num_clients; ++i) {
+        if (client_list[i]->cli_id == client_id) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 int main() {
@@ -19,6 +56,12 @@ int main() {
     fd_set masterfds, readfds;              // FD sets for master, read
     int fdmax;                              // Max FD for select()
     printf("Starting server...\n");
+
+    srand(time(NULL)); // Seed random number generator
+
+    /* Initialize client list */
+    num_clients = 0;
+    client_list = (struct client **) malloc(num_clients * sizeof(struct client *));
 
     /* Create socket */
     listen_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -74,7 +117,9 @@ int main() {
                         }
                         char ip_buffer[INET_ADDRSTRLEN];
                         inet_ntop(AF_INET, &(cli_addr.sin_addr), ip_buffer, INET_ADDRSTRLEN);
-                        printf("Connected to %s on %d\n", ip_buffer, cli_sock);
+                        int client_id = add_client(cli_sock);
+                        send(cli_sock, &client_id, sizeof(int), 0);
+                        printf("Connected to %s on %d [ID: %d]\n", ip_buffer, cli_sock, client_id);
                     }
         
                 }
@@ -94,13 +139,13 @@ int main() {
                         FD_CLR(currentfd, &masterfds);
                     }
                     else {
-                        printf("[RECEIVED FROM %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.sequence, package.total, package.type, package.message);
+                        printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
                         char *recv_message = (char *) malloc(package.total * MSG_SIZE * sizeof(char));
                         strncpy(recv_message, package.message, MSG_SIZE);
                         while (package.sequence < package.total) {
                             recv(currentfd, &package, sizeof(package), 0);
                             strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
-                            printf("[RECEIVED FROM %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.sequence, package.total, package.type, package.message);
+                            printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
                         }
                         printf("[COMBINED MESSAGE FROM %d]: %s\n", currentfd, recv_message);
                         char *send_msg = recv_message; // Forward received data to all other clients. TODO: Implement channels
