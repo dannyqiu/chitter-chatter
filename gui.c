@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <string.h>
 #include "constants.h"
+#include "client.h"
 
 /* This is a callback function. The data arguments are ignored
  * in this example. More on callbacks below.
@@ -10,16 +11,16 @@ void print_hello (GtkWidget *widget, gpointer data) {
 }
 
 void append_to_buffer(GtkEntry *chatbox){
-    gchar message[MSG_SIZE];
+    gchar * message;
+    gchar * timestamp = "timestamp"; //placeholders
+    gchar * display_name = "bob";
     GtkTextIter chat_end;
     GtkTextView *chatlog;
     GtkTextBuffer *chat_buffer;
     GtkWidget *grid;
-    //GtkWidget *window;
     GtkBin *scroll;
 
     //get textview + buffer
-    //    window = gtk_widget_get_toplevel((GtkWidget*)chatbox);
     grid = gtk_widget_get_parent((GtkWidget*)chatbox);
     if(!GTK_IS_CONTAINER(grid)){
         g_print("Grid is not a container\n");
@@ -35,14 +36,10 @@ void append_to_buffer(GtkEntry *chatbox){
     //g_print("Got buffer\n");
    
     gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
-    g_print("Got iter\n");
+    //g_print("Got iter\n");
 
-    g_stpcpy(message,"[timestamp][name]: "); //will make more robust later
+    message = g_strdup_printf("[%s] %s: %s\n", timestamp, display_name, gtk_entry_get_text(chatbox));
     
-    g_strlcat(message,gtk_entry_get_text(chatbox),MSG_SIZE);
-    g_print("%s\n", message);
-    g_strlcat(message,"\n",MSG_SIZE);
-
     g_print("Append: %s\n",message);
     
     gtk_entry_set_text(chatbox,"");//Resets the entry
