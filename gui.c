@@ -58,8 +58,12 @@ void append_to_buffer(GtkEntry *chatbox){
     g_free(message);
 }
 
-void on_clientlist_selection_changed(GtkWidget *widget, gpointer data){
-    g_print("Changed selection!\n");
+void on_channel_selection_changed(GtkWidget *widget, gpointer data){
+    g_print("Changed channel!\n");
+}
+
+void on_user_selection_changed(GtkWidget *widget, gpointer data){
+    g_print("Changed user!\n");
 }
 
 gboolean key_event(GtkWidget *widget,
@@ -135,7 +139,7 @@ int main (int argc, char *argv[]) {
     GtkTextBuffer *buffer;
        
     builder = gtk_builder_new();
-    gtk_builder_add_from_file(builder , "chat_room.ui" , NULL); 
+    gtk_builder_add_from_file(builder , "layout.ui" , NULL); 
     buffer = gtk_text_buffer_new(NULL);
 
     chatlog = gtk_builder_get_object(builder, "chatlog");
