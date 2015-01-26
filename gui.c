@@ -93,23 +93,19 @@ gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data) {
     return TRUE;
 }
 
-int main (int argc, char *argv[]) {
-
+void chat_room(){
     GtkBuilder *builder;
     GObject *chatlog;
     GObject *chatbox;
     GtkTextBuffer *buffer;
-
-    gtk_init (&argc, &argv);
-    
+       
     builder = gtk_builder_new();
-    gtk_builder_add_from_file(builder , "layout.ui" , NULL); 
+    gtk_builder_add_from_file(builder , "chat_room.ui" , NULL); 
     buffer = gtk_text_buffer_new(NULL);
 
     chatlog = gtk_builder_get_object(builder, "chatlog");
     chatbox = gtk_builder_get_object(builder, "chatbox");
-
-    gtk_text_buffer_set_text(buffer, "[21:00] alvin: haha you know that isnt true\n[21:01] bob: ofc it is what r u saying\n",-1);
+   
     gtk_text_view_set_buffer(GTK_TEXT_VIEW(chatlog), buffer); 
 
     //connect signal handlers to gui
@@ -118,13 +114,40 @@ int main (int argc, char *argv[]) {
     //set focus to chatbox 
     gtk_widget_grab_focus((GtkWidget*)chatbox);
 
-    /* The g_signal_connect_swapped() function will connect the "clicked" signal
-    * of the button to the gtk_widget_destroy() function; instead of calling it
-    * using the button as its argument, it will swap it with the user data
-    * argument. This will cause the window to be destroyed by calling
-    * gtk_widget_destroy() on the window.
-    */
-    //g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_widget_destroy), window);
+}
+
+int main (int argc, char *argv[]) {
+
+    gtk_init (&argc, &argv);
+
+    //Main Chat Program
+    GtkBuilder *builder;
+    GObject *chatlog;
+    GObject *chatbox;
+    GtkTextBuffer *buffer;
+       
+    builder = gtk_builder_new();
+    gtk_builder_add_from_file(builder , "chat_room.ui" , NULL); 
+    buffer = gtk_text_buffer_new(NULL);
+
+    chatlog = gtk_builder_get_object(builder, "chatlog");
+    chatbox = gtk_builder_get_object(builder, "chatbox");
+   
+    gtk_text_view_set_buffer(GTK_TEXT_VIEW(chatlog), buffer); 
+
+    //connect signal handlers to gui
+    gtk_builder_connect_signals(builder, NULL);
+
+    //set focus to chatbox 
+    gtk_widget_grab_focus((GtkWidget*)chatbox);
+
+
+    //Name Grabber
+    GtkWidget *dialog;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL;
+    //dialog = gtk_dialog_with_new_buttons("Chitter-Chatter",
+					 
+
 
     gtk_main ();
 
