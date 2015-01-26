@@ -1,16 +1,5 @@
-#include <gtk/gtk.h>
-#include <glib-object.h>
-#include <time.h>
-#include <string.h>
-#include "constants.h"
+#include "gui.h"
 #include "client.h"
-
-/* This is a callback function. The data arguments are ignored
- * in this example. More on callbacks below.
- */
-void print_hello (GtkWidget *widget, gpointer data) {
-    g_print ("Hello World\n");
-}
 
 void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
     GtkTextIter chat_end;
