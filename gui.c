@@ -74,9 +74,23 @@ gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data) {
    * type dialogs.
    */
 
-  g_print ("delete event occurred\n");
+    GtkWidget *dialog;
+    GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
+    dialog = gtk_message_dialog_new(GTK_WINDOW(widget), flags, GTK_MESSAGE_QUESTION,
+                                    GTK_BUTTONS_YES_NO, "Are you sure you want to quit?");
 
-  return FALSE;
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    switch (response){
+        case GTK_RESPONSE_YES:
+            gtk_widget_destroy(dialog);
+            return FALSE;
+        case GTK_RESPONSE_NO:
+            g_print("Aborting exit...\n");
+            gtk_widget_destroy(dialog);
+            return TRUE;
+    }
+    g_print ("delete event occurred\n");
+    return TRUE;
 }
 
 int main (int argc, char *argv[]) {
