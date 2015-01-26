@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -27,10 +28,18 @@ void send_create_channel_to_server(int, char *);
 int get_current_channel();
 void change_current_channel(int);
 
-
 #define SHM_KEY_FILE "Makefile"
 #define SEM_KEY_FILE "README.md"
 #define KEY_ID 694
+
+#if defined(__FreeBSD__)
+#else
+    union semun {
+        int     val;            /* value for SETVAL */
+        struct  semid_ds *buf;  /* buffer for IPC_STAT & IPC_SET */
+        u_short *array;         /* array for GETALL & SETALL */
+    };
+#endif
 
 int init_shared_memory();
 int remove_shared_memory();
