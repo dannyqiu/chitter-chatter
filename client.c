@@ -55,6 +55,7 @@ int main() {
 
     int child_pid = fork();
     if (child_pid) { // Parent handles sending
+        /*
         while (1) {
             printf("Enter a message: ");
             fflush(stdout);
@@ -72,6 +73,8 @@ int main() {
             }
             free(input);
         }
+        */
+        send_create_channel_to_server(sock_fd, "CRAZYYYY");
     }
     else { // Child handles receiving
         while (1) {
@@ -88,15 +91,23 @@ int main() {
                 exit(1);
             }
             else {
-                // TODO: Add channel to list on TYPE_CREATE_CHANNEL and TYPE_JOIN_CHANNEL
-                char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
-                strncpy(recv_message, package.message, MSG_SIZE);
-                while (package.sequence < package.total) {
-                    recv(sock_fd, &package, sizeof(struct chat_packet), 0);
-                    strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
+                if (package.type == TYPE_MESSAGE) {
+                    char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
+                    strncpy(recv_message, package.message, MSG_SIZE);
+                    while (package.sequence < package.total) {
+                        recv(sock_fd, &package, sizeof(struct chat_packet), 0);
+                        strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
+                    }
+                    printf("\nReceived: %s\n", recv_message);
+                    free(recv_message);
                 }
-                printf("\nReceived: %s\n", recv_message);
-                free(recv_message);
+                // TODO: Add channel to list on TYPE_CREATE_CHANNEL and TYPE_JOIN_CHANNEL
+                else if (package.type == TYPE_JOIN_CHANNEL) {
+                    printf("YAYYYYYY!\n");
+                }
+                else if (package.type == TYPE_CREATE_CHANNEL) {
+                    send_join_channel_to_server(sock_fd, package.channel_id);
+                }
             }
         }
     }
@@ -119,7 +130,15 @@ void send_message_to_server(int sock_fd, char *message, size_t message_len) {
     }
 }
 
-void send_join_channel_to_server(){};
+void send_join_channel_to_server(int sock_fd, int channel_id) {
+    struct chat_packet package;
+    package.sequence = 0;
+    package.total = 0;
+    package.type = TYPE_JOIN_CHANNEL;
+    package.client_id = client_id;
+    package.channel_id = channel_id;
+    send(sock_fd, &package, sizeof(struct chat_packet), 0);
+}
 
 void send_create_channel_to_server(int sock_fd, char *channel_name) {
     struct chat_packet package;

@@ -229,12 +229,17 @@ int main() {
                             }
                             free(recv_message);
                         }
+                        else if (initial_package.type == TYPE_JOIN_CHANNEL) {
+                            add_client_to_channel(initial_package.client_id, initial_package.channel_id);
+                            printf("Client %d has joined channel %d\n", initial_package.client_id, initial_package.channel_id);
+                            send(currentfd, &initial_package, sizeof(struct chat_packet), 0); // Server sends acknowledgement of join
+                        }
                         else if (initial_package.type == TYPE_CREATE_CHANNEL) {
                             int channel_id = add_channel(initial_package.message);
                             add_client_to_channel(initial_package.client_id, channel_id);
                             printf("Channel %s created with ID %d by Client %d\n", initial_package.message, channel_id, initial_package.client_id);
                             initial_package.channel_id = channel_id;
-                            send(currentfd, &initial_package, sizeof(struct chat_packet), 0);
+                            send(currentfd, &initial_package, sizeof(struct chat_packet), 0); // Server send channel id back
                         }
                     }
 
