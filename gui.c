@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <glib-object.h>
 #include <time.h>
 #include <string.h>
 #include "constants.h"
@@ -66,6 +67,20 @@ void on_user_selection_changed(GtkWidget *widget, gpointer data){
     g_print("Changed user!\n");
 }
 
+void add_item_to_list(GtkListStore *list, gchar *item_name){
+    GValue name = G_VALUE_INIT;
+    g_value_init(&name, G_TYPE_STRING);
+    g_value_set_static_string(&name, item_name);
+
+    GtkTreeIter iter;
+
+    g_print("Appending...\n");
+    gtk_list_store_append(list, &iter);
+    g_print("Appended\n");
+    gtk_list_store_set_value(list, &iter, 0, &name); 
+    g_print("Added value to list.\n");
+}
+
 gboolean key_event(GtkWidget *widget,
           GdkEventKey *event)
 {
@@ -117,7 +132,7 @@ void chat_room(){
 
     chatlog = gtk_builder_get_object(builder, "chatlog");
     chatbox = gtk_builder_get_object(builder, "chatbox");
-   
+        
     gtk_text_view_set_buffer(GTK_TEXT_VIEW(chatlog), buffer); 
 
     //connect signal handlers to gui
@@ -136,6 +151,8 @@ int main (int argc, char *argv[]) {
     GtkBuilder *builder;
     GObject *chatlog;
     GObject *chatbox;
+    GObject *users;
+    GObject *channels;
     GtkTextBuffer *buffer;
        
     builder = gtk_builder_new();
@@ -144,7 +161,9 @@ int main (int argc, char *argv[]) {
 
     chatlog = gtk_builder_get_object(builder, "chatlog");
     chatbox = gtk_builder_get_object(builder, "chatbox");
-   
+    channels = gtk_builder_get_object(builder, "channels");
+    users = gtk_builder_get_object(builder, "users");
+     
     gtk_text_view_set_buffer(GTK_TEXT_VIEW(chatlog), buffer); 
 
     //connect signal handlers to gui
@@ -153,6 +172,8 @@ int main (int argc, char *argv[]) {
     //set focus to chatbox 
     gtk_widget_grab_focus((GtkWidget*)chatbox);
 
+    add_item_to_list((GtkListStore*)channels, (gchar*)"a channel");
+    add_item_to_list((GtkListStore*)users, (gchar*)"admin");
 
     //Name Grabber
     GtkWidget *dialog;
