@@ -181,10 +181,7 @@ int * get_channels() {
     }
     char filename[PROFILE_PATH_SIZE];
     snprintf(filename, sizeof(filename), "%s/%d", PROFILE_FOLDER, client_id);
-    if (access(filename, F_OK) < 0) {
-        close(open(filename, O_CREAT | 0666));
-    }
-    int profilefd = open(filename, O_RDONLY);
+    int profilefd = open(filename, O_RDONLY | O_CREAT, 0666);
     int file_size = lseek(profilefd, 0, SEEK_END) - lseek(profilefd, 0, SEEK_SET);
     char *channels_string = (char *) malloc(file_size * sizeof(char));
     read(profilefd, channels_string, file_size);
@@ -209,10 +206,7 @@ void add_channel(int channel_id) {
     }
     char filename[PROFILE_PATH_SIZE];
     snprintf(filename, sizeof(filename), "%s/%d", PROFILE_FOLDER, client_id);
-    if (access(filename, F_OK) < 0) {
-        close(open(filename, O_CREAT | 0666));
-    }
-    int profilefd = open(filename, O_WRONLY | O_APPEND);
+    int profilefd = open(filename, O_WRONLY | O_APPEND | O_CREAT, 0666);
     if (profilefd < 0) {
         print_error("Problem with opening profile file for writing");
     }
