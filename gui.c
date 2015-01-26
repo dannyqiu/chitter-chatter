@@ -10,7 +10,7 @@ void print_hello (GtkWidget *widget, gpointer data) {
 }
 
 void append_to_buffer(GtkEntry *chatbox){
-    const gchar *message;
+    gchar message[MSG_SIZE];
     GtkTextIter chat_end;
     GtkTextView *chatlog;
     GtkTextBuffer *chat_buffer;
@@ -24,27 +24,24 @@ void append_to_buffer(GtkEntry *chatbox){
     if(!GTK_IS_CONTAINER(grid)){
         g_print("Grid is not a container\n");
     }
-    g_print("Got grid...\n");  
+    //g_print("Got grid...\n");  
    
     scroll = (GtkBin*)gtk_grid_get_child_at((GtkGrid*)grid,1,0);
     chatlog = (GtkTextView*)gtk_bin_get_child(scroll);
-    g_print("Got Textview\n");
+    //g_print("Got Textview\n");
     
     //chatlog = find_child(window,"chatlog");
     chat_buffer = gtk_text_view_get_buffer(chatlog); 
-    g_print("Got buffer\n");
-    if(!GTK_IS_TEXT_BUFFER(chat_buffer)){
-        g_print("Invalid buffer okay\n");
-    }
+    //g_print("Got buffer\n");
    
     gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
-    g_print("Got iters\n");
+    g_print("Got iter\n");
 
-    message = "[timestamp][name]:"; //will make more robust later
+    g_stpcpy(message,"[timestamp][name]: "); //will make more robust later
     
-    //g_stpcpy(message,gtk_entry_get_text(chatbox));
-    //g_print("%s\n", message);
-    //g_stpcpy(message,"\n");
+    g_strlcat(message,gtk_entry_get_text(chatbox),MSG_SIZE);
+    g_print("%s\n", message);
+    g_strlcat(message,"\n",MSG_SIZE);
 
     g_print("Append: %s\n",message);
     
