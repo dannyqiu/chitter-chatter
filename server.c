@@ -2,6 +2,8 @@
 #include "util.h"
 #include "constants.h"
 
+int listen_sock, cli_sock;              // Server listen sock, New client sock
+
 static void signal_handler(int signo) {
     switch (signo) {
         case SIGINT:
@@ -14,7 +16,6 @@ int main() {
     signal(SIGINT, signal_handler);
     struct sockaddr_in serv_addr, cli_addr; // Server address, Client address
     socklen_t cli_len;                      // Client address length
-    int listen_sock, cli_sock;              // Server listen sock, New client sock
     fd_set masterfds, readfds;              // FD sets for master, read
     int fdmax;                              // Max FD for select()
     printf("Starting server...\n");
@@ -80,8 +81,8 @@ int main() {
                 else {
 
                     /* Get data from client and forward to all other clients */
-                    char buffer[MSG_SIZE];
-                    int nbytes = recv(currentfd, buffer, sizeof(buffer), 0);
+                    struct chat_packet package;
+                    int nbytes = recv(currentfd, &package, sizeof(package), 0);
                     if (nbytes <= 0) {
                         if (nbytes == 0) {
                             printf("Connection closed by %d\n", currentfd);
@@ -93,15 +94,24 @@ int main() {
                         FD_CLR(currentfd, &masterfds);
                     }
                     else {
-                        printf("[RECEIVED FROM %d]: %s", currentfd, buffer);
+                        printf("[RECEIVED FROM %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.sequence, package.total, package.type, package.message);
+                        char *recv_message = (char *) malloc(package.total * MSG_SIZE * sizeof(char));
+                        strncpy(recv_message, package.message, MSG_SIZE);
+                        while (package.sequence < package.total) {
+                            recv(currentfd, &package, sizeof(package), 0);
+                            strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
+                            printf("[RECEIVED FROM %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.sequence, package.total, package.type, package.message);
+                        }
+                        printf("[COMBINED MESSAGE FROM %d]: %s\n", currentfd, recv_message);
                         int recipient;
                         for (recipient=0; recipient<=fdmax; ++recipient) {
                             if (FD_ISSET(recipient, &masterfds) && recipient != currentfd && recipient != listen_sock) {
-                                if (send(recipient, buffer, sizeof(buffer), 0) < 0) {
+                                if (send(recipient, recv_message, strlen(recv_message), 0) < 0) {
                                     print_error("Problem sending data to client");
                                 }
                             }
                         }
+                        free(recv_message);
                     }
 
                 }
