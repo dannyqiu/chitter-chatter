@@ -24,6 +24,7 @@ struct client {
 void cleanup();
 
 int add_client(int);
+void remove_client(int);
 int is_client_id_taken(int);
 
 char * receive_message_from_client(int, struct chat_packet);

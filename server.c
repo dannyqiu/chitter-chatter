@@ -22,7 +22,10 @@ static void signal_handler(int signo) {
 
 void cleanup() {
     for (; num_clients > 0; --num_clients) {
-        free(client_list[num_clients-1]);
+        struct client *cur_client = client_list[num_clients-1];
+        if (cur_client) {
+            free(cur_client);
+        }
     }
     free(client_list);
 }
@@ -42,11 +45,27 @@ int add_client(int fd) {
     return client_id;
 }
 
+void remove_client(int fd) {
+    int i;
+    for (i=0; i<num_clients; ++i) {
+        struct client *cur_client = client_list[i];
+        if (cur_client) {
+            if (cur_client->cli_sock == fd) {
+                free(cur_client);
+                client_list[i] = NULL;
+            }
+        }
+    }
+}
+
 int is_client_id_taken(int client_id) {
     int i;
     for (i=0; i<num_clients; ++i) {
-        if (client_list[i]->cli_id == client_id) {
-            return 1;
+        struct client *cur_client = client_list[i];
+        if (cur_client) {
+            if (cur_client->cli_id == client_id) {
+                return 1;
+            }
         }
     }
     return 0;
@@ -141,6 +160,7 @@ int main() {
                         }
                         close(currentfd);
                         FD_CLR(currentfd, &masterfds);
+                        remove_client(currentfd);
                     }
                     else {
                         char *recv_message = receive_message_from_client(currentfd, initial_package);
