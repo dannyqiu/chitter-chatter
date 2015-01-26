@@ -55,7 +55,6 @@ int main() {
 
     int child_pid = fork();
     if (child_pid) { // Parent handles sending
-        char buffer[MSG_SIZE];
         while (1) {
             printf("Enter a message: ");
             fflush(stdout);
@@ -89,6 +88,7 @@ int main() {
                 exit(1);
             }
             else {
+                // TODO: Add channel to list on TYPE_CREATE_CHANNEL and TYPE_JOIN_CHANNEL
                 char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
                 strncpy(recv_message, package.message, MSG_SIZE);
                 while (package.sequence < package.total) {
@@ -117,4 +117,17 @@ void send_message_to_server(int sock_fd, char *message, size_t message_len) {
         strncpy(package.message, message + (n * MSG_SIZE), MSG_SIZE);
         send(sock_fd, &package, sizeof(struct chat_packet), 0);
     }
+}
+
+void send_join_channel_to_server(){};
+
+void send_create_channel_to_server(int sock_fd, char *channel_name) {
+    struct chat_packet package;
+    package.sequence = 0;
+    package.total = 0;
+    package.type = TYPE_CREATE_CHANNEL;
+    package.client_id = client_id;
+    package.channel_id = 0;
+    strncpy(package.message, channel_name, CHANNEL_NAME_SIZE);
+    send(sock_fd, &package, sizeof(struct chat_packet), 0);
 }

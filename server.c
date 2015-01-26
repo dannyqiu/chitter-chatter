@@ -5,6 +5,8 @@ int listen_sock, cli_sock; // Server listen sock, New client sock
 
 struct client **client_list;
 int num_clients;
+struct channel **channel_list;
+int num_channels;
 
 static void signal_handler(int signo) {
     switch (signo) {
@@ -28,6 +30,13 @@ void cleanup() {
         }
     }
     free(client_list);
+    for (; num_channels > 0; --num_channels) {
+        struct channel *cur_channel = channel_list[num_channels-1];
+        if (cur_channel) {
+            free(cur_channel);
+        }
+    }
+    free(channel_list);
 }
 
 int add_client(int fd) {
@@ -40,7 +49,8 @@ int add_client(int fd) {
     struct client *new_client = (struct client *) malloc(sizeof(struct client));
     new_client->cli_sock = fd;
     new_client->cli_id = client_id;
-    new_client->channels = NULL;
+    new_client->num_channels = 0;
+    new_client->channels = (struct channel **) malloc(new_client->num_channels * sizeof(struct channel *));
     client_list[num_clients-1] = new_client;
     return client_id;
 }
@@ -71,6 +81,49 @@ int is_client_id_taken(int client_id) {
     return 0;
 }
 
+int add_channel(char *channel_name) {
+    int channel_id = rand();
+    while (is_channel_id_taken(channel_id)) {
+        channel_id = rand();
+    }
+    ++num_channels;
+    channel_list = (struct channel **) realloc(channel_list, num_channels * sizeof(struct channel *));
+    struct channel *new_channel = (struct channel *) malloc(sizeof(struct channel));
+    new_channel->channel_id = channel_id;
+    strncpy(new_channel->channel_name, channel_name, CHANNEL_NAME_SIZE);
+    new_channel->num_clients = 0;
+    new_channel->cli_ids = (int *) malloc(num_clients * sizeof(int));
+    channel_list[num_channels-1] = new_channel;
+    return channel_id;
+}
+
+int is_channel_id_taken(int channel_id) {
+    int i;
+    for (i=0; i<num_channels; ++i) {
+        struct channel *cur_channel = channel_list[i];
+        if (cur_channel) {
+            if (cur_channel->channel_id == channel_id) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+void add_client_to_channel(int client_id, int channel_id) {
+    int i;
+    for (i=0; i<num_channels; ++i) {
+        struct channel *cur_channel = channel_list[i];
+        if (cur_channel) {
+            if (cur_channel->channel_id == channel_id) {
+                ++(cur_channel->num_clients);
+                cur_channel->cli_ids = (int *) realloc(cur_channel->cli_ids, cur_channel->num_clients * sizeof(int));
+                cur_channel->cli_ids[num_clients-1] = client_id;
+            }
+        }
+    }
+}
+
 int main() {
     signal(SIGINT, signal_handler);
     signal(SIGSEGV, signal_handler);
@@ -85,6 +138,8 @@ int main() {
     /* Initialize client list */
     num_clients = 0;
     client_list = (struct client **) malloc(num_clients * sizeof(struct client *));
+    num_channels = 0;
+    channel_list = (struct channel **) malloc(num_channels * sizeof(struct channel *));
 
     /* Create socket */
     listen_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -163,15 +218,24 @@ int main() {
                         remove_client(currentfd);
                     }
                     else {
-                        char *recv_message = receive_message_from_client(currentfd, initial_package);
-                        char *send_msg = recv_message; // Forward received data to all other clients. TODO: Implement channels
-                        int recipient;
-                        for (recipient=0; recipient<=fdmax; ++recipient) {
-                            if (FD_ISSET(recipient, &masterfds) && recipient != currentfd && recipient != listen_sock) {
-                                send_message_to_client(recipient, recv_message, strlen(recv_message), initial_package.client_id, initial_package.channel_id);
+                        if (initial_package.type == TYPE_MESSAGE) {
+                            char *recv_message = receive_message_from_client(currentfd, initial_package);
+                            char *send_msg = recv_message; // Forward received data to all other clients. TODO: Implement channels
+                            int recipient;
+                            for (recipient=0; recipient<=fdmax; ++recipient) {
+                                if (FD_ISSET(recipient, &masterfds) && recipient != currentfd && recipient != listen_sock) {
+                                    send_message_to_client(recipient, recv_message, strlen(recv_message), initial_package.client_id, initial_package.channel_id);
+                                }
                             }
+                            free(recv_message);
                         }
-                        free(recv_message);
+                        else if (initial_package.type == TYPE_CREATE_CHANNEL) {
+                            int channel_id = add_channel(initial_package.message);
+                            add_client_to_channel(initial_package.client_id, channel_id);
+                            printf("Channel %s created with ID %d by Client %d\n", initial_package.message, channel_id, initial_package.client_id);
+                            initial_package.channel_id = channel_id;
+                            send(currentfd, &initial_package, sizeof(struct chat_packet), 0);
+                        }
                     }
 
                 }
