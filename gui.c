@@ -39,10 +39,17 @@ void append_to_buffer(GtkEntry *chatbox){
    
     gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
     g_print("Got iters\n");
-     
-    message = gtk_entry_get_text(chatbox);
-    g_print("Append: %s\n",message);
 
+    message = "[timestamp][name]:"; //will make more robust later
+    
+    //g_stpcpy(message,gtk_entry_get_text(chatbox));
+    //g_print("%s\n", message);
+    //g_stpcpy(message,"\n");
+
+    g_print("Append: %s\n",message);
+    
+    gtk_entry_set_text(chatbox,"");//Resets the entry
+    
     gtk_text_buffer_insert(chat_buffer,&chat_end,message,-1);
 }
 
