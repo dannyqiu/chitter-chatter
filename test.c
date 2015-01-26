@@ -17,7 +17,7 @@ gboolean key_event(GtkWidget *widget,
 {
   g_printerr("%s\n",
 	     gdk_keyval_name (event->keyval));
-  return FALSE;
+  return TRUE;
 }
 
 gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data) {
