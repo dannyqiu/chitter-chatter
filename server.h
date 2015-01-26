@@ -7,8 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
-#define CHANNEL_NAME_SIZE 256
+#include "constants.h"
 
 struct channel {
     int channel_id; // ID of the channel
@@ -26,3 +25,6 @@ void cleanup();
 
 int add_client(int);
 int is_client_id_taken(int);
+
+char * receive_message_from_client(int, struct chat_packet);
+void send_message_to_client(int, char *, size_t, int, int);

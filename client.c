@@ -1,6 +1,5 @@
 #include "client.h"
 #include "util.h"
-#include "constants.h"
 
 int sock_fd; // Client sock to communicate with server
 int client_id; // ID of client assigned by server
@@ -70,18 +69,7 @@ int main() {
                 exit(0);
             }
             else {
-                int num_packets = input_len / MSG_SIZE;
-                int n;
-                for (n=0; n<=num_packets; ++n) {
-                    struct chat_packet package;
-                    package.sequence = n;
-                    package.total = num_packets;
-                    package.type = TYPE_MESSAGE;
-                    package.client_id = client_id;
-                    package.channel_id = current_channel;
-                    strncpy(package.message, input + (n * MSG_SIZE), MSG_SIZE);
-                    send(sock_fd, &package, sizeof(package), 0);
-                }
+                send_message_to_server(sock_fd, input, input_len);
             }
             free(input);
         }
@@ -108,9 +96,25 @@ int main() {
                     strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
                 }
                 printf("\nReceived: %s\n", recv_message);
+                free(recv_message);
             }
         }
     }
 
     return 0;
+}
+
+void send_message_to_server(int sock_fd, char *message, size_t message_len) {
+    int num_packets = message_len / MSG_SIZE;
+    int n;
+    for (n=0; n<=num_packets; ++n) {
+        struct chat_packet package;
+        package.sequence = n;
+        package.total = num_packets;
+        package.type = TYPE_MESSAGE;
+        package.client_id = client_id;
+        package.channel_id = current_channel;
+        strncpy(package.message, message + (n * MSG_SIZE), MSG_SIZE);
+        send(sock_fd, &package, sizeof(package), 0);
+    }
 }

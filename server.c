@@ -1,6 +1,5 @@
 #include "server.h"
 #include "util.h"
-#include "constants.h"
 
 int listen_sock, cli_sock; // Server listen sock, New client sock
 
@@ -126,8 +125,8 @@ int main() {
                 else {
 
                     /* Handle data from connected clients */
-                    struct chat_packet package;
-                    int nbytes = recv(currentfd, &package, sizeof(package), 0);
+                    struct chat_packet initial_package;
+                    int nbytes = recv(currentfd, &initial_package, sizeof(struct chat_packet), 0);
                     if (nbytes <= 0) {
                         if (nbytes == 0) {
                             printf("Connection closed by %d\n", currentfd);
@@ -139,29 +138,12 @@ int main() {
                         FD_CLR(currentfd, &masterfds);
                     }
                     else {
-                        printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
-                        char *recv_message = (char *) malloc(package.total * MSG_SIZE * sizeof(char));
-                        strncpy(recv_message, package.message, MSG_SIZE);
-                        while (package.sequence < package.total) {
-                            recv(currentfd, &package, sizeof(package), 0);
-                            strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
-                            printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
-                        }
-                        printf("[COMBINED MESSAGE FROM %d]: %s\n", currentfd, recv_message);
+                        char *recv_message = receive_message_from_client(currentfd, initial_package);
                         char *send_msg = recv_message; // Forward received data to all other clients. TODO: Implement channels
                         int recipient;
                         for (recipient=0; recipient<=fdmax; ++recipient) {
                             if (FD_ISSET(recipient, &masterfds) && recipient != currentfd && recipient != listen_sock) {
-                                int num_packets = strlen(recv_message) / MSG_SIZE;
-                                int n;
-                                for (n=0; n<=num_packets; ++n) {
-                                    struct chat_packet package;
-                                    package.sequence = n;
-                                    package.total = num_packets;
-                                    package.type = TYPE_MESSAGE;
-                                    strncpy(package.message, send_msg + (n * MSG_SIZE), MSG_SIZE);
-                                    send(recipient, &package, sizeof(package), 0);
-                                }
+                                send_message_to_client(recipient, recv_message, strlen(recv_message), initial_package.client_id, initial_package.channel_id);
                             }
                         }
                         free(recv_message);
@@ -173,4 +155,32 @@ int main() {
     } // WOW SUCH NESTING
 
     return 0;
+}
+
+char * receive_message_from_client(int listen_fd, struct chat_packet package) {
+    printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", listen_fd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
+    char *recv_message = (char *) malloc(package.total * MSG_SIZE * sizeof(char));
+    strncpy(recv_message, package.message, MSG_SIZE);
+    while (package.sequence < package.total) {
+        recv(listen_fd, &package, sizeof(package), 0);
+        strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
+        printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", listen_fd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
+    }
+    printf("[COMBINED MESSAGE FROM %d]: %s\n", listen_fd, recv_message);
+    return recv_message;
+}
+
+void send_message_to_client(int sock_fd, char *message, size_t message_len, int client_id, int channel_id) {
+    int num_packets = message_len / MSG_SIZE;
+    int n;
+    for (n=0; n<=num_packets; ++n) {
+        struct chat_packet package;
+        package.sequence = n;
+        package.total = num_packets;
+        package.type = TYPE_MESSAGE;
+        package.client_id = client_id;
+        package.channel_id = channel_id;
+        strncpy(package.message, message + (n * MSG_SIZE), MSG_SIZE);
+        send(sock_fd, &package, sizeof(package), 0);
+    }
 }

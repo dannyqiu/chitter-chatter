@@ -2,6 +2,7 @@
 static const char *SERVER_IP = "127.0.0.1";
 
 #define MSG_SIZE 512
+#define CHANNEL_NAME_SIZE 256
 
 /* Message types */
 #define TYPE_MESSAGE 0
