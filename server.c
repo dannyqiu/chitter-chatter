@@ -251,6 +251,7 @@ int main() {
     return 0;
 }
 
+// Output needs to be freed
 char * receive_message_from_client(int listen_fd, struct chat_packet package) {
     printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", listen_fd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
     char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));

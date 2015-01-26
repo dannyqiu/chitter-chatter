@@ -1,6 +1,9 @@
 #define SERVER_PORT 6666
 static const char *SERVER_IP = "127.0.0.1";
 
+#define PROFILE_PATH_SIZE 32
+static const char *PROFILE_FOLDER = "profile";
+
 #define MSG_SIZE 512
 #define CHANNEL_NAME_SIZE 256
 
