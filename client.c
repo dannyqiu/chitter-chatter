@@ -2,7 +2,8 @@
 #include "util.h"
 #include "constants.h"
 
-int sock_fd;
+int sock_fd; // Client sock to communicate with server
+int client_id; // ID of client assigned by server
 
 static void signal_handler(int signo) {
     switch (signo) {
@@ -31,6 +32,13 @@ int main() {
     if (connect(sock_fd, (struct sockaddr *) &cli_addr, sizeof(cli_addr)) < 0) {
         print_error("Problem connecting to server");
         exit(1);
+    }
+
+    if (recv(sock_fd, &client_id, sizeof(int), 0) < 0) {
+        print_error("Problem getting client ID from server");
+    }
+    else {
+        printf("Got client ID of %d from server\n", client_id);
     }
 
     int child_pid = fork();

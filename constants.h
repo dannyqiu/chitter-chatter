@@ -12,6 +12,8 @@ struct chat_packet {
     int sequence;           // Packet number in sequence
     int total;              // Total number of packets in message
     int type;               // Type header
+    int client_id;          // ID of client that sent packet
+    int channel_id;         // ID of channel that packet belongs to
     char message[MSG_SIZE]; // Content
 };
 
