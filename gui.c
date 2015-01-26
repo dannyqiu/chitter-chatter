@@ -1,6 +1,8 @@
 #include <gtk/gtk.h>
+#include <time.h>
 #include <string.h>
 #include "constants.h"
+#include "client.h"
 
 /* This is a callback function. The data arguments are ignored
  * in this example. More on callbacks below.
@@ -10,16 +12,19 @@ void print_hello (GtkWidget *widget, gpointer data) {
 }
 
 void append_to_buffer(GtkEntry *chatbox){
-    gchar message[MSG_SIZE];
+    gchar * message;
+    gchar * display_name = "bob";
+    gchar timestamp[TIMESTAMP_SIZE]; //placeholders
+    time_t current_time;
+    struct tm *timeinfo;
+
     GtkTextIter chat_end;
     GtkTextView *chatlog;
     GtkTextBuffer *chat_buffer;
     GtkWidget *grid;
-    //GtkWidget *window;
     GtkBin *scroll;
 
     //get textview + buffer
-    //    window = gtk_widget_get_toplevel((GtkWidget*)chatbox);
     grid = gtk_widget_get_parent((GtkWidget*)chatbox);
     if(!GTK_IS_CONTAINER(grid)){
         g_print("Grid is not a container\n");
@@ -35,19 +40,22 @@ void append_to_buffer(GtkEntry *chatbox){
     //g_print("Got buffer\n");
    
     gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
-    g_print("Got iter\n");
+    //g_print("Got iter\n");
 
-    g_stpcpy(message,"[timestamp][name]: "); //will make more robust later
-    
-    g_strlcat(message,gtk_entry_get_text(chatbox),MSG_SIZE);
-    g_print("%s\n", message);
-    g_strlcat(message,"\n",MSG_SIZE);
+    //get current time
+    current_time = time(NULL);
+    timeinfo = localtime(&current_time);
+    strftime(timestamp, TIMESTAMP_SIZE, "%H:%M", timeinfo); 
 
-    g_print("Append: %s\n",message);
+    message = g_strdup_printf("[%s] %s: %s\n", timestamp, display_name, gtk_entry_get_text(chatbox));
     
+    //g_print("Append: %s\n",message);
     gtk_entry_set_text(chatbox,"");//Resets the entry
     
+    //insert message to chatlog
     gtk_text_buffer_insert(chat_buffer,&chat_end,message,-1);
+
+    g_free(message);
 }
 
 void on_clientlist_selection_changed(GtkWidget *widget, gpointer data){

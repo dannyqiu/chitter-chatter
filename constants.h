@@ -3,6 +3,7 @@ static const char *SERVER_IP = "127.0.0.1";
 
 #define HEADER_SIZE 10
 #define MSG_SIZE 512
+#define TIMESTAMP_SIZE 10 
 
 /* Message types */
 #define TYPE_CONTROL 0
