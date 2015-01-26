@@ -11,7 +11,12 @@ static void signal_handler(int signo) {
     switch (signo) {
         case SIGINT:
             close(sock_fd);
+            cleanup();
             exit(0);
+        case SIGPIPE:
+            close(sock_fd);
+            cleanup();
+            exit(1);
     }
 }
 
