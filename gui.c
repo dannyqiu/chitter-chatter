@@ -12,14 +12,31 @@ void print_hello (GtkWidget *widget, gpointer data) {
     g_print ("Hello World\n");
 }
 
-void append_to_buffer(GtkEntry *chatbox){
-    gchar * message;
+void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
+    GtkTextIter chat_end;
     gchar * display_name = "bob";
     gchar timestamp[TIMESTAMP_SIZE]; //placeholders
     time_t current_time;
     struct tm *timeinfo;
 
-    GtkTextIter chat_end;
+    //get current time
+    current_time = time(NULL);
+    timeinfo = localtime(&current_time);
+    strftime(timestamp, TIMESTAMP_SIZE, "%H:%M", timeinfo); 
+
+    gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
+    //g_print("Got iter\n");
+    
+    message = g_strdup_printf("[%s] %s: %s\n", timestamp, display_name, message);
+    
+    //insert message to chatlog
+    //g_print("Append: %s\n",message);
+    gtk_text_buffer_insert(chat_buffer,&chat_end,message,-1);
+
+    g_free(message);
+}
+
+GtkTextBuffer* get_chat_log(GtkEntry *chatbox){
     GtkTextView *chatlog;
     GtkTextBuffer *chat_buffer;
     GtkWidget *grid;
@@ -40,23 +57,7 @@ void append_to_buffer(GtkEntry *chatbox){
     chat_buffer = gtk_text_view_get_buffer(chatlog); 
     //g_print("Got buffer\n");
    
-    gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
-    //g_print("Got iter\n");
-
-    //get current time
-    current_time = time(NULL);
-    timeinfo = localtime(&current_time);
-    strftime(timestamp, TIMESTAMP_SIZE, "%H:%M", timeinfo); 
-
-    message = g_strdup_printf("[%s] %s: %s\n", timestamp, display_name, gtk_entry_get_text(chatbox));
-    
-    //g_print("Append: %s\n",message);
-    gtk_entry_set_text(chatbox,"");//Resets the entry
-    
-    //insert message to chatlog
-    gtk_text_buffer_insert(chat_buffer,&chat_end,message,-1);
-
-    g_free(message);
+    return chat_buffer;
 }
 
 void on_channel_selection_changed(GtkWidget *widget, gpointer data){
@@ -81,15 +82,16 @@ void add_item_to_list(GtkListStore *list, gchar *item_name){
     g_print("Added value to list.\n");
 }
 
-gboolean key_event(GtkWidget *widget,
-          GdkEventKey *event)
-{
-  g_printerr("%s\n",
-	     gdk_keyval_name (event->keyval));
-  if(strcmp(gdk_keyval_name(event->keyval),"Return")==0){
-      append_to_buffer((GtkEntry*)widget);
-  }
-  return TRUE;
+gboolean key_event(GtkWidget *widget, GdkEventKey *event){
+    //g_printerr("%s\n", gdk_keyval_name (event->keyval));
+    GtkEntry *chatbox = (GtkEntry*)widget;
+    gchar *input = (gchar *)gtk_entry_get_text(chatbox);
+    if(strcmp(gdk_keyval_name(event->keyval),"Return")==0 && strcmp(input, "") != 0){
+        GtkTextBuffer * chat_buffer = get_chat_log(chatbox);
+        append_to_chat_log(chat_buffer, input);
+        gtk_entry_set_text(chatbox,"");//Resets the entry
+    }
+    return TRUE;
 }
 
 gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data) {
