@@ -8,7 +8,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#define CHANNEL_NAME_SIZE 256
+
 struct channel {
+    int channel_id; // ID of the channel
+    char channel_name[CHANNEL_NAME_SIZE];
     int *cli_ids;   // Array pointer to clients in channel
 };
 

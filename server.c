@@ -139,13 +139,13 @@ int main() {
                         FD_CLR(currentfd, &masterfds);
                     }
                     else {
-                        printf("[RECEIVED FROM %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.sequence, package.total, package.type, package.message);
+                        printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
                         char *recv_message = (char *) malloc(package.total * MSG_SIZE * sizeof(char));
                         strncpy(recv_message, package.message, MSG_SIZE);
                         while (package.sequence < package.total) {
                             recv(currentfd, &package, sizeof(package), 0);
                             strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
-                            printf("[RECEIVED FROM %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.sequence, package.total, package.type, package.message);
+                            printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
                         }
                         printf("[COMBINED MESSAGE FROM %d]: %s\n", currentfd, recv_message);
                         char *send_msg = recv_message; // Forward received data to all other clients. TODO: Implement channels

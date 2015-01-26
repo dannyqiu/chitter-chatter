@@ -4,6 +4,9 @@
 
 int sock_fd; // Client sock to communicate with server
 int client_id; // ID of client assigned by server
+int *channel_ids; // ID of channels client is on
+int num_channels;
+int current_channel;
 
 static void signal_handler(int signo) {
     switch (signo) {
@@ -11,6 +14,16 @@ static void signal_handler(int signo) {
             close(sock_fd);
             exit(0);
     }
+}
+
+void cleanup() {
+    free(channel_ids);
+}
+
+void add_channel(int channel_id) {
+    ++num_channels;
+    channel_ids = (int *) realloc(channel_ids, num_channels * sizeof(int));
+    channel_ids[num_channels-1] = channel_id;
 }
 
 int main() {
@@ -64,6 +77,8 @@ int main() {
                     package.sequence = n;
                     package.total = num_packets;
                     package.type = TYPE_MESSAGE;
+                    package.client_id = client_id;
+                    package.channel_id = current_channel;
                     strncpy(package.message, input + (n * MSG_SIZE), MSG_SIZE);
                     send(sock_fd, &package, sizeof(package), 0);
                 }
