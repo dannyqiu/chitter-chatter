@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <time.h>
 #include <string.h>
 #include "constants.h"
 #include "client.h"
@@ -12,8 +13,11 @@ void print_hello (GtkWidget *widget, gpointer data) {
 
 void append_to_buffer(GtkEntry *chatbox){
     gchar * message;
-    gchar * timestamp = "timestamp"; //placeholders
     gchar * display_name = "bob";
+    gchar timestamp[TIMESTAMP_SIZE]; //placeholders
+    time_t current_time;
+    struct tm *timeinfo;
+
     GtkTextIter chat_end;
     GtkTextView *chatlog;
     GtkTextBuffer *chat_buffer;
@@ -38,13 +42,20 @@ void append_to_buffer(GtkEntry *chatbox){
     gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
     //g_print("Got iter\n");
 
+    //get current time
+    current_time = time(NULL);
+    timeinfo = localtime(&current_time);
+    strftime(timestamp, TIMESTAMP_SIZE, "%H:%M", timeinfo); 
+
     message = g_strdup_printf("[%s] %s: %s\n", timestamp, display_name, gtk_entry_get_text(chatbox));
     
-    g_print("Append: %s\n",message);
-    
+    //g_print("Append: %s\n",message);
     gtk_entry_set_text(chatbox,"");//Resets the entry
     
+    //insert message to chatlog
     gtk_text_buffer_insert(chat_buffer,&chat_end,message,-1);
+
+    g_free(message);
 }
 
 void on_clientlist_selection_changed(GtkWidget *widget, gpointer data){
