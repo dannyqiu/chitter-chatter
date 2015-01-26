@@ -64,10 +64,9 @@ int main() {
         }
     }
     else { // Child handles receiving
-        char buffer[MSG_SIZE];
-        int nbytes;
         while (1) {
-            nbytes = recv(sock_fd, buffer, sizeof(buffer), 0);
+            struct chat_packet package;
+            int nbytes = recv(sock_fd, &package, sizeof(package), 0);
             if (nbytes <= 0) {
                 if (nbytes == 0) {
                     printf("Connection closed by the server :(");
@@ -79,7 +78,13 @@ int main() {
                 exit(1);
             }
             else {
-                printf("\nReceived: %s", buffer);
+                char *recv_message = (char *) malloc(package.total * MSG_SIZE * sizeof(char));
+                strncpy(recv_message, package.message, MSG_SIZE);
+                while (package.sequence < package.total) {
+                    recv(sock_fd, &package, sizeof(package), 0);
+                    strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
+                }
+                printf("\nReceived: %s\n", recv_message);
             }
         }
     }

@@ -80,7 +80,7 @@ int main() {
                 }
                 else {
 
-                    /* Get data from client and forward to all other clients */
+                    /* Handle data from connected clients */
                     struct chat_packet package;
                     int nbytes = recv(currentfd, &package, sizeof(package), 0);
                     if (nbytes <= 0) {
@@ -103,11 +103,19 @@ int main() {
                             printf("[RECEIVED FROM %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.sequence, package.total, package.type, package.message);
                         }
                         printf("[COMBINED MESSAGE FROM %d]: %s\n", currentfd, recv_message);
+                        char *send_msg = recv_message; // Forward received data to all other clients. TODO: Implement channels
                         int recipient;
                         for (recipient=0; recipient<=fdmax; ++recipient) {
                             if (FD_ISSET(recipient, &masterfds) && recipient != currentfd && recipient != listen_sock) {
-                                if (send(recipient, recv_message, strlen(recv_message), 0) < 0) {
-                                    print_error("Problem sending data to client");
+                                int num_packets = strlen(recv_message) / MSG_SIZE;
+                                int n;
+                                for (n=0; n<=num_packets; ++n) {
+                                    struct chat_packet package;
+                                    package.sequence = n;
+                                    package.total = num_packets;
+                                    package.type = TYPE_MESSAGE;
+                                    strncpy(package.message, send_msg + (n * MSG_SIZE), MSG_SIZE);
+                                    send(recipient, &package, sizeof(package), 0);
                                 }
                             }
                         }
