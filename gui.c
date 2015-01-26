@@ -11,15 +11,15 @@ void print_hello (GtkWidget *widget, gpointer data) {
 
 void append_to_buffer(GtkEntry *chatbox){
     const gchar *message;
-    GtkTextIter *chat_end;
+    GtkTextIter chat_end;
     GtkTextView *chatlog;
     GtkTextBuffer *chat_buffer;
-    GtkContainer *grid;
-    GtkWidget *window;
+    GtkWidget *grid;
+    //GtkWidget *window;
     GtkBin *scroll;
 
     //get textview + buffer
-    window = gtk_widget_get_toplevel((GtkWidget*)chatbox);
+    //    window = gtk_widget_get_toplevel((GtkWidget*)chatbox);
     grid = gtk_widget_get_parent((GtkWidget*)chatbox);
     if(!GTK_IS_CONTAINER(grid)){
         g_print("Grid is not a container\n");
@@ -37,13 +37,13 @@ void append_to_buffer(GtkEntry *chatbox){
         g_print("Invalid buffer okay\n");
     }
    
-    gtk_text_buffer_get_end_iter(chat_buffer, chat_end);
+    gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
     g_print("Got iters\n");
      
     message = gtk_entry_get_text(chatbox);
     g_print("Append: %s\n",message);
 
-    gtk_text_buffer_insert(chat_buffer,chat_end,message,-1);
+    gtk_text_buffer_insert(chat_buffer,&chat_end,message,-1);
 }
 
 void on_clientlist_selection_changed(GtkWidget *widget, gpointer data){
