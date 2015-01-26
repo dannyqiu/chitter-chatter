@@ -11,29 +11,39 @@ void print_hello (GtkWidget *widget, gpointer data) {
 
 void append_to_buffer(GtkEntry *chatbox){
     const gchar *message;
-    GtkTextIter *chat_start;
     GtkTextIter *chat_end;
+    GtkTextView *chatlog;
+    GtkTextBuffer *chat_buffer;
+    GtkContainer *grid;
+    GtkWidget *window;
+    GtkBin *scroll;
 
     //get textview + buffer
-    //GtkWidget *window = gtk_widget_get_toplevel((GtkWidget*)chatbox);
-    GtkGrid *grid = (GtkGrid *)gtk_widget_get_parent((GtkWidget*)chatbox);
-    g_print("Got grid...\n");  
-    GtkTextView *chatlog = (GtkTextView*)gtk_bin_get_child((GtkBin*)gtk_grid_get_child_at(grid,1,0));
-    g_print("Got Textview\n");
-    GtkTextBuffer * chat_buffer = gtk_text_view_get_buffer(chatlog); 
-    g_print("Got buffer\n");
-    if(chat_buffer == NULL){
-        g_print("NULLLLL\n");
+    window = gtk_widget_get_toplevel((GtkWidget*)chatbox);
+    grid = gtk_widget_get_parent((GtkWidget*)chatbox);
+    if(!GTK_IS_CONTAINER(grid)){
+        g_print("Grid is not a container\n");
     }
-
-    gtk_text_buffer_get_iter_at_offset(chat_buffer, chat_start,0);
+    g_print("Got grid...\n");  
+   
+    scroll = (GtkBin*)gtk_grid_get_child_at((GtkGrid*)grid,1,0);
+    chatlog = (GtkTextView*)gtk_bin_get_child(scroll);
+    g_print("Got Textview\n");
     
-    g_print("Get start iter\n");
-    //gtk_text_buffer_get_end_iter(chat_buffer, chat_end);
-    //g_print("Got iters\n");
+    //chatlog = find_child(window,"chatlog");
+    chat_buffer = gtk_text_view_get_buffer(chatlog); 
+    g_print("Got buffer\n");
+    if(!GTK_IS_TEXT_BUFFER(chat_buffer)){
+        g_print("Invalid buffer okay\n");
+    }
+   
+    gtk_text_buffer_get_end_iter(chat_buffer, chat_end);
+    g_print("Got iters\n");
      
     message = gtk_entry_get_text(chatbox);
     g_print("Append: %s\n",message);
+
+    gtk_text_buffer_insert(chat_buffer,chat_end,message,-1);
 }
 
 void on_clientlist_selection_changed(GtkWidget *widget, gpointer data){
@@ -48,7 +58,7 @@ gboolean key_event(GtkWidget *widget,
   if(strcmp(gdk_keyval_name(event->keyval),"Return")==0){
       append_to_buffer((GtkEntry*)widget);
   }
-  return FALSE;
+  return TRUE;
 }
 
 gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data) {
