@@ -2,7 +2,16 @@
 #include "util.h"
 #include "constants.h"
 
+static void signal_handler(int signo) {
+    switch (signo) {
+        case SIGINT:
+            close(sock_fd);
+            exit(0);
+    }
+}
+
 int main() {
+    signal(SIGINT, signal_handler);
     struct sockaddr_in cli_addr;
     int sock_fd;
     printf("Starting client...\n");

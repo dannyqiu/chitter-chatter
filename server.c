@@ -2,7 +2,16 @@
 #include "util.h"
 #include "constants.h"
 
+static void signal_handler(int signo) {
+    switch (signo) {
+        case SIGINT:
+            close(listen_sock);
+            exit(0);
+    }
+}
+
 int main() {
+    signal(SIGINT, signal_handler);
     struct sockaddr_in serv_addr, cli_addr; // Server address, Client address
     socklen_t cli_len;                      // Client address length
     int listen_sock, cli_sock;              // Server listen sock, New client sock
