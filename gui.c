@@ -7,10 +7,10 @@ GtkBuilder *builder;
 GObject *chatlog;
 GObject *window;
 GObject *chatbox;
-GObject *users;
 GObject *channels;
 GtkTextBuffer *buffer;
 gchar display_name[DISPLAY_NAME_SIZE];
+
 //Popup Dialog
 GtkWidget *grid;
 GtkWidget *name_dialog;
@@ -135,7 +135,6 @@ int main (int argc, char *argv[]) {
     chatlog = gtk_builder_get_object(builder, "chatlog");
     chatbox = gtk_builder_get_object(builder, "chatbox");
     channels = gtk_builder_get_object(builder, "channels");
-    users = gtk_builder_get_object(builder, "users");
      
     gtk_text_view_set_buffer(GTK_TEXT_VIEW(chatlog), buffer); 
 
@@ -146,7 +145,6 @@ int main (int argc, char *argv[]) {
     gtk_widget_grab_focus((GtkWidget*)chatbox);
 
     add_item_to_list((GtkListStore*)channels, (gchar*)"a channel");
-    add_item_to_list((GtkListStore*)users, (gchar*)"admin");
    
     //Popup Window Code here
     label = gtk_label_new("Enter your desired display name.");
