@@ -154,7 +154,7 @@ void on_user_channel_selection_changed(GtkWidget *selection, gpointer data){
         //clear chatlog
         gtk_text_buffer_set_text(chat_buffer,"",0);
         
-        printf("Switched to channel %d.\n",current_channel_id);
+        printf("Switched to channel %d.\n",selected_channel_id);
     } else {
         printf("Selected Channel: %d\n",selected_channel_id);
         printf("Current Channel: %d\n",current_channel_id);
