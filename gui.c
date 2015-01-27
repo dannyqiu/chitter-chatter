@@ -155,34 +155,17 @@ int main (int argc, char *argv[]) {
     add_item_to_list((GtkListStore*)channels, (gchar*)"a channel");
     add_item_to_list((GtkListStore*)users, (gchar*)"admin");
     
-    //gint response = gtk_dialog_run(GTK_DIALOG(dialog));
-    //Name Grabber
-    /*
-    GtkBuilder *dialog_builder;
-    GObject *dialog;
-
-    dialog_builder = gtk_builder_new();
-    gtk_builder_add_from_file(dialog_builder, "dialog_builder.ui", NULL);
-    gtk_builder_connect_signals(dialog_builder, NULL);
-    */
-    //dialog = gtk_builder_get_object(dialog_builder, "dialog1");
-    //gint response = gtk_dialog_run(GTK_DIALOG(dialog));
-    
     GtkWidget *grid;
     GtkWidget *name_dialog;
     GtkWidget *name_entry;
     GtkWidget *label;
     GtkWidget *content_area;
 
-    //grid = gtk_grid_new();
-
     label = gtk_label_new("Enter your desired display name.");
 
     name_entry = gtk_entry_new();
     gtk_entry_set_visibility(GTK_ENTRY(name_entry) , TRUE);
     gtk_entry_set_max_length(GTK_ENTRY(name_entry) , 20);
-
-    //gtk_grid_attach(GTK_GRID(grid), name, 0,0,1,1);
     
     GtkDialogFlags flags = GTK_DIALOG_MODAL;
     
