@@ -44,12 +44,16 @@ void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message) {
     gtk_text_view_scroll_mark_onscreen((GtkTextView *)chatlog, mark);
 }
 
-void change_display_name(const gchar *name){
+void change_display_name(gchar *name) {
     // TODO: Button to do this?
-    if(strcmp(name, "")==0){
-        name = g_strdup_printf("Anonymous%d",client_id);
+    if (strcmp(name, "") == 0) {
+        name = g_strdup_printf("Anonymous(%d)", client_id);
+        g_strlcpy(display_name, name, DISPLAY_NAME_SIZE);
+        g_free(name);
     }
-    g_strlcpy(display_name, name, DISPLAY_NAME_SIZE);
+    else {
+        g_strlcpy(display_name, name, DISPLAY_NAME_SIZE);
+    }
 }
 
 void on_create_channel_clicked(GtkWidget *widget, gpointer data){
@@ -284,11 +288,13 @@ int main (int argc, char *argv[]) {
     gtk_widget_show_all(name_dialog);
     gint response = gtk_dialog_run(GTK_DIALOG(name_dialog));
     
-    if(response == GTK_RESPONSE_ACCEPT){
-        change_display_name(gtk_entry_get_text(GTK_ENTRY(name_entry)));
+    if (response == GTK_RESPONSE_ACCEPT) {
+        change_display_name((gchar *) gtk_entry_get_text(GTK_ENTRY(name_entry)));
         gtk_widget_destroy(name_dialog);
     } else {
-        change_display_name(g_strdup_printf("Anonymous%d",client_id));
+        gchar *name = g_strdup_printf("Anonymous(%d)",client_id);
+        change_display_name(name);
+        g_free(name);
         gtk_widget_destroy(name_dialog);
     }
 

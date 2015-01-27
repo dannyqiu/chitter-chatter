@@ -5,7 +5,7 @@
 
 gchar * construct_message(gchar *, gchar *);
 void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message);
-void change_display_name(const gchar *name);
+void change_display_name(gchar *name);
 
 void on_create_channel_clicked(GtkWidget *widget, gpointer data);
 void on_channel_selection_changed(GtkWidget *widget, gpointer data);
