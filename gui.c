@@ -2,6 +2,15 @@
 #include "client.h"
 #include "util.h"
 
+//Main Chat Program
+GtkBuilder *builder;
+GObject *chatlog;
+GObject *chatbox;
+GObject *users;
+GObject *channels;
+GObject *dialog;
+GtkTextBuffer *buffer;
+
 int client_id;
 int client_sock;
 GIOChannel *client_gchannel;
@@ -120,15 +129,7 @@ gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data) {
 int main (int argc, char *argv[]) {
 
     gtk_init (&argc, &argv);
-
-    //Main Chat Program
-    GtkBuilder *builder;
-    GObject *chatlog;
-    GObject *chatbox;
-    GObject *users;
-    GObject *channels;
-    GtkTextBuffer *buffer;
-       
+    
     builder = gtk_builder_new();
     gtk_builder_add_from_file(builder , "layout.ui" , NULL); 
     buffer = gtk_text_buffer_new(NULL);
