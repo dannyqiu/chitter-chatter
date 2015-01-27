@@ -11,7 +11,7 @@ server: setup
 	gcc $(FLAGS) -o build/server $(SERVER_FILES) $(UTIL_FILES)
 
 client: setup
-	gcc $(FLAGS) $(GTK_FLAGS) -o build/gui $(CLIENT_FILES) $(UTIL_FILES) $(GTK_LIBS)
+	gcc $(FLAGS) $(GTK_FLAGS) -o build/client $(CLIENT_FILES) $(UTIL_FILES) $(GTK_LIBS)
 
 setup:
 	mkdir -p build

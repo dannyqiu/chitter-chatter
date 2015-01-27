@@ -12,9 +12,9 @@ An upgrade to instant messaging where channels are in style. Create a channel, h
 
 `make` to build both the client and the server
 
-`make client` to build the client
+`make client` to build the client and `/build/client` to run the client
 
-`make server` to build the server
+`make server` to build the server and `/build/server` to run the server
 
 ### BUGS
 
