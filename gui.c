@@ -136,6 +136,8 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
         } else {
             g_print("You've already joined this channel.\n");
             current_channel_id = selected_channel_id;
+            //clear chatlog
+            gtk_text_buffer_set_text(chat_buffer,"",0);
             printf("Switched to channel: %d\n",selected_channel_id);
         }
     } else {
@@ -176,7 +178,7 @@ void add_item_to_list(GtkListStore *list, gchar *item_name) {
 }
 
 gboolean key_event(GtkWidget *widget, GdkEventKey *event){
-    //g_printerr("%s\n", gdk_keyval_name (event->keyval));
+    g_print("%s\n", gdk_keyval_name (event->keyval));
     GtkEntry *chatbox = (GtkEntry*)widget;
     gchar *input = (gchar *)gtk_entry_get_text(chatbox);
     if (strcmp(gdk_keyval_name(event->keyval), "Return") == 0 && strcmp(input, "") != 0){
