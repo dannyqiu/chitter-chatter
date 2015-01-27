@@ -23,31 +23,9 @@ void cleanup() {
 
 int main() {
     signal(SIGINT, signal_handler);
-    struct sockaddr_in cli_addr;
     printf("Starting client...\n");
 
-    /* Create socket */
-    sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock_fd < 0) {
-        print_error("Problem creating sock");
-        exit(1);
-    }
-
-    /* Connect socket to server */
-    cli_addr.sin_family = AF_INET;
-    cli_addr.sin_port = htons(SERVER_PORT);
-    inet_aton(SERVER_IP, &(cli_addr.sin_addr));
-    if (connect(sock_fd, (struct sockaddr *) &cli_addr, sizeof(cli_addr)) < 0) {
-        print_error("Problem connecting to server");
-        exit(1);
-    }
-
-    if (recv(sock_fd, &client_id, sizeof(int), 0) < 0) {
-        print_error("Problem getting client ID from server");
-    }
-    else {
-        printf("Got client ID of %d from server\n", client_id);
-    }
+    client_id = connect_to_server(&sock_fd);
 
     if (init_shared_memory() < 0) {
         print_error("Problem creating shared memory");
@@ -119,6 +97,35 @@ int main() {
     }
 
     return 0;
+}
+
+int connect_to_server(int *sock_fd) {
+    struct sockaddr_in cli_addr;
+
+    /* Create socket */
+    *sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (*sock_fd < 0) {
+        print_error("Problem creating sock");
+        exit(1);
+    }
+
+    /* Connect socket to server */
+    cli_addr.sin_family = AF_INET;
+    cli_addr.sin_port = htons(SERVER_PORT);
+    inet_aton(SERVER_IP, &(cli_addr.sin_addr));
+    if (connect(*sock_fd, (struct sockaddr *) &cli_addr, sizeof(cli_addr)) < 0) {
+        print_error("Problem connecting to server");
+        exit(1);
+    }
+
+    int client_id_from_server;
+    if (recv(*sock_fd, &client_id_from_server, sizeof(int), 0) < 0) {
+        print_error("Problem getting client ID from server");
+    }
+    else {
+        printf("Got client ID of %d from server\n", client_id_from_server);
+    }
+    return client_id_from_server;
 }
 
 void send_message_to_server(int sock_fd, char *message, size_t message_len) {
