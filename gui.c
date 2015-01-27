@@ -18,6 +18,7 @@ int client_id;
 int client_sock;
 GIOChannel *client_gchannel;
 int current_channel_id;
+int num_channels;
 
 // Needs to be freed
 gchar * construct_message(gchar *display_name, gchar *message) {
@@ -97,7 +98,8 @@ gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
 }
 
 void on_channel_selection_changed(GtkWidget *selection, gpointer data){
-    if(gtk_tree_selection_count_selected_rows(GTK_TREE_SELECTION(selection)) == 0){
+    printf("Num channels: %d\n",num_channels);
+    if(gtk_tree_selection_count_selected_rows(GTK_TREE_SELECTION(selection)) != num_channels || num_channels == 0){
         return;
     }
     gchar * selected_channel = get_selected_channel(GTK_TREE_MODEL(channels), GTK_TREE_SELECTION(selection));
@@ -215,7 +217,8 @@ gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data) {
 int main (int argc, char *argv[]) {
 
     gtk_init (&argc, &argv);
-    
+   
+    num_channels = 0; 
     builder = gtk_builder_new();
     gtk_builder_add_from_file(builder , "layout.ui" , NULL); 
     //buffer = gtk_text_buffer_new(NULL);
@@ -335,15 +338,19 @@ gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gp
             
             GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(channeltree));
             gtk_tree_selection_unselect_all(selection);
-            
+            num_channels = 0;
+
             gtk_list_store_clear((GtkListStore *) channels);
             gchar *token, *current_pos;
             current_pos = recv_message;
             while ((token = strsep(&current_pos, ",")) != NULL) {
                 if (strcmp(token, "") != 0) {
+                    num_channels++;
                     add_item_to_list((GtkListStore *) channels, token);
+                    gtk_tree_selection_unselect_all(selection);
                 }
             }
+            printf("Num channels: %d\n",num_channels);
             free(recv_message);
         }
     }
