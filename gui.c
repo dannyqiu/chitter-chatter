@@ -1,4 +1,9 @@
 #include "gui.h"
+#include "client.h"
+#include "util.h"
+
+int client_id;
+int client_sock;
 
 void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
     GtkTextIter chat_end;
@@ -15,13 +20,15 @@ void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
     gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
     //g_print("Got iter\n");
     
-    message = g_strdup_printf("[%s] %s: %s\n", timestamp, display_name, message);
+    gchar *display_message = g_strdup_printf("[%s] %s: %s\n", timestamp, display_name, message);
     
     //insert message to chatlog
     //g_print("Append: %s\n",message);
-    gtk_text_buffer_insert(chat_buffer,&chat_end,message,-1);
+    gtk_text_buffer_insert(chat_buffer,&chat_end,display_message,-1);
 
-    g_free(message);
+    send_message_to_server(client_sock, message, strlen(message));
+
+    g_free(display_message);
 }
 
 GtkTextBuffer* get_chat_log(GtkEntry *chatbox){
@@ -169,8 +176,13 @@ int main (int argc, char *argv[]) {
     GtkWidget *dialog;
     GtkDialogFlags flags = GTK_DIALOG_MODAL;
     //dialog = gtk_dialog_with_new_buttons("Chitter-Chatter",
-					 
 
+    client_id = connect_to_server(&client_sock);
+
+    /* Initialize shared memory to hold client current channel */
+    if (init_shared_memory() < 0) {
+        print_error("Problem creating shared memory");
+    }
 
     gtk_main ();
 
