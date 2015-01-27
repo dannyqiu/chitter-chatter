@@ -33,10 +33,10 @@
                 <data>
                     <!-- Placeholder data for testing purposes -->
                     <row>
-                        <col id="0">bob</col>
+                        <col id="0">Class 301</col>
                     </row>
                     <row>
-                        <col id="0">alison</col>
+                        <col id="0">Class 302</col>
                     </row>
                 </data>
             </object>
@@ -65,7 +65,7 @@
                                 <property name="model">channels</property>
                                 <child>
                                     <object id="channelcol" class="GtkTreeViewColumn">
-                                        <property name="title">Channels</property>
+                                        <property name="title">Open Channels</property>
                                         <property name="expand">True</property>
                                         <child>
                                             <object id="channel-renderer" class="GtkCellRendererText"/>
