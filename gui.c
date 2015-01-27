@@ -111,40 +111,17 @@ gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data) {
     return TRUE;
 }
 
-void chat_room(){
-    GtkBuilder *builder;
-    GObject *chatlog;
-    GObject *chatbox;
-    GtkTextBuffer *buffer;
-       
-    builder = gtk_builder_new();
-    gtk_builder_add_from_file(builder , "chat_room.ui" , NULL); 
-    buffer = gtk_text_buffer_new(NULL);
-
-    chatlog = gtk_builder_get_object(builder, "chatlog");
-    chatbox = gtk_builder_get_object(builder, "chatbox");
-        
-    gtk_text_view_set_buffer(GTK_TEXT_VIEW(chatlog), buffer); 
-
-    //connect signal handlers to gui
-    gtk_builder_connect_signals(builder, NULL);
-
-    //set focus to chatbox 
-    gtk_widget_grab_focus((GtkWidget*)chatbox);
-
-}
-
 int main (int argc, char *argv[]) {
 
     gtk_init (&argc, &argv);
-
+    
     //Main Chat Program
     GtkBuilder *builder;
-    GObject *window;
     GObject *chatlog;
     GObject *chatbox;
     GObject *users;
     GObject *channels;
+    GObject *dialog;
     GtkTextBuffer *buffer;
        
     builder = gtk_builder_new();
@@ -153,8 +130,8 @@ int main (int argc, char *argv[]) {
 
     chatlog = gtk_builder_get_object(builder, "chatlog");
     chatbox = gtk_builder_get_object(builder, "chatbox");
-    window = gtk_builder_get_object(builder, "window");
     channels = gtk_builder_get_object(builder, "channels");
+    dialog = gtk_builder_get_object(builder, "dialog1");
     users = gtk_builder_get_object(builder, "users");
      
     gtk_text_view_set_buffer(GTK_TEXT_VIEW(chatlog), buffer); 
@@ -167,8 +144,20 @@ int main (int argc, char *argv[]) {
 
     add_item_to_list((GtkListStore*)channels, (gchar*)"a channel");
     add_item_to_list((GtkListStore*)users, (gchar*)"admin");
-
+    
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
     //Name Grabber
+    /*
+    GtkBuilder *dialog_builder;
+    GObject *dialog;
+
+    dialog_builder = gtk_builder_new();
+    gtk_builder_add_from_file(dialog_builder, "dialog_builder.ui", NULL);
+    gtk_builder_connect_signals(dialog_builder, NULL);
+    */
+    //dialog = gtk_builder_get_object(dialog_builder, "dialog1");
+    //gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    /*
     GtkWidget *grid;
     GtkWidget *dialog;
     GtkWidget *name;
@@ -198,7 +187,7 @@ int main (int argc, char *argv[]) {
     if(response == GTK_RESPONSE_ACCEPT){
       gtk_widget_destroy(dialog);
     }
-
+    */
     gtk_main ();
 
     return 0;
