@@ -100,7 +100,7 @@ gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
 void on_channel_selection_changed(GtkWidget *selection, gpointer data){
     printf("Num channels: %d\n",num_channels);
     if(gtk_tree_selection_count_selected_rows(GTK_TREE_SELECTION(selection)) != num_channels || num_channels == 0){
-        return;
+        //return;
     }
     gchar * selected_channel = get_selected_channel(GTK_TREE_MODEL(channels), GTK_TREE_SELECTION(selection));
     if(selected_channel == NULL){
@@ -134,11 +134,14 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
                     break;
             }
         }
+        else {
+            printf("This channel is already in your history %d\n", selected_channel_id);
+        }
     } else {
         g_print("You've already joined this channel.\n");
-        current_channel_id = selected_channel_id;
         printf("Switched to channel: %d\n",selected_channel_id);
     }
+    current_channel_id = selected_channel_id;
 }
 
 void on_user_channel_selection_changed(GtkWidget *selection, gpointer data){
