@@ -298,7 +298,9 @@ gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gp
                 strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
             }
             GtkTextBuffer *chat_buffer = gtk_text_view_get_buffer((GtkTextView *) chatlog);
-            append_to_chat_log(chat_buffer, recv_message);
+            if (package.channel_id == current_channel_id) { // Only show messages that apply to the channel client is in
+                append_to_chat_log(chat_buffer, recv_message);
+            }
             g_print("\nReceived: %s\n", recv_message);
             free(recv_message);
         }
