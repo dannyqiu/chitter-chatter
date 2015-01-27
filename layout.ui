@@ -46,6 +46,16 @@
                 <property name="column-spacing">15</property>
                 <property name="row-spacing">15</property>
                 <child>
+                    <object id="createchannel" class="GtkButton">
+                        <property name="visible">True</property>
+                        <property name="label">Create Channel</property>
+                    </object>
+                    <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">0</property>
+                    </packing>
+                </child>
+                <child>
                     <object id="channelwindow" class="GtkScrolledWindow">
                         <property name="visible">True</property>
                         <property name="expand">True</property>
@@ -75,8 +85,8 @@
                     </object>
                     <packing>
                         <property name="left-attach">0</property>
-                        <property name="top-attach">0</property>
-                        <property name="height">2</property>
+                        <property name="top-attach">1</property>
+                        <property name="height">10</property>
                     </packing>
                 </child>
                 <child>
@@ -96,6 +106,7 @@
                     <packing>
                         <property name="left-attach">1</property>
                         <property name="top-attach">0</property>
+                        <property name="height">10</property>
                     </packing>
                 </child>
                 <child>
@@ -107,7 +118,7 @@
                     </object>
                     <packing>
                         <property name="left-attach">1</property>
-                        <property name="top-attach">1</property>
+                        <property name="top-attach">10</property>
                     </packing>
                 </child>
                 <child>
@@ -141,7 +152,7 @@
                     <packing>
                         <property name="left-attach">2</property>
                         <property name="top-attach">0</property>
-                        <property name="height">2</property>
+                        <property name="height">11</property>
                     </packing>
                 </child>
             </object>
