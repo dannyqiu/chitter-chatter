@@ -109,28 +109,11 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
     int selected_channel_id = atoi(selected_channel);
     free(selected_channel);
 
-    //TODO: Account for joining channels the client already is in
     if(selected_channel_id != current_channel_id){
         
         //clear chatlog
         gtk_text_buffer_set_text(chat_buffer,"",0);
         
-            GtkWidget *dialog;
-            GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
-            dialog = gtk_message_dialog_new(GTK_WINDOW(window), flags, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, "Do you want to join this channel?");
-
-            gint response = gtk_dialog_run(GTK_DIALOG(dialog));
-            switch (response){
-                case GTK_RESPONSE_YES:
-                    send_join_channel_to_server(client_sock,client_id,selected_channel_id); 
-                    gtk_widget_destroy(dialog);
-                    g_print("Joined available channel.\n");
-                    break;
-                default:
-                    g_print("No change.\n");
-                    gtk_widget_destroy(dialog);
-                    break;
-            }
         if (!is_channel_in_client_channels(selected_channel_id)) {
             GtkWidget *dialog;
             GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
@@ -149,6 +132,7 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
                     g_print("No change.\n");
                     gtk_widget_destroy(dialog);
                     break;
+            }
         }
     } else {
         printf("Channel: %d\n",selected_channel_id);
@@ -235,6 +219,13 @@ int main (int argc, char *argv[]) {
 
     gtk_init (&argc, &argv);
    
+    /* Initial socket connection and setup */
+    client_id = connect_to_server(&client_sock);
+    client_gchannel = g_io_channel_unix_new(client_sock);
+    send_get_channels_to_server(client_sock); // Get initial listing of channels
+    send_join_channel_to_server(client_sock, client_id, MASTER_CHANNEL); // Join the default master channel
+    g_io_add_watch(client_gchannel, G_IO_IN, (GIOFunc) receive_data_from_server, NULL);
+
     num_channels = 0; 
     builder = gtk_builder_new();
     gtk_builder_add_from_file(builder , "layout.ui" , NULL); 
@@ -288,13 +279,6 @@ int main (int argc, char *argv[]) {
     } else {
         change_display_name(g_strdup_printf("Anonymous%d",client_id));
     }
-
-    client_id = connect_to_server(&client_sock);
-    client_gchannel = g_io_channel_unix_new(client_sock);
-    send_get_channels_to_server(client_sock); // Get initial listing of channels
-    send_join_channel_to_server(client_sock, client_id, MASTER_CHANNEL); // Join the default master channel
-
-    g_io_add_watch(client_gchannel, G_IO_IN, (GIOFunc) receive_data_from_server, NULL);
 
     gtk_main ();
 
