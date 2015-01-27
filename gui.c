@@ -214,12 +214,18 @@ gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gp
             current_channel_id = package.channel_id;
             add_channel(package.channel_id);
             g_print("Joined channel %d\n", package.channel_id);
+            gchar gchannel_id[16];
+            snprintf(gchannel_id, sizeof(gchannel_id), "%d", package.channel_id);
+            add_item_to_list((GtkListStore*) channels, gchannel_id);
         }
         else if (package.type == TYPE_CREATE_CHANNEL) {
             //send_join_channel_to_server(client_sock, package.channel_id); // This line is not required because creator automatically joins channel
             current_channel_id = package.channel_id;
             add_channel(package.channel_id);
             g_print("Created and changed to channel %d\n", package.channel_id);
+            gchar gchannel_id[16];
+            snprintf(gchannel_id, sizeof(gchannel_id), "%d", package.channel_id);
+            add_item_to_list((GtkListStore*) channels, gchannel_id);
         }
     }
     return TRUE;
