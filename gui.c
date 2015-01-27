@@ -63,6 +63,10 @@ GtkTextBuffer* get_chat_log(GtkEntry *chatbox){
     return chat_buffer;
 }
 
+void change_display_name(char *name){
+    display_name = name;
+}
+
 void on_channel_selection_changed(GtkWidget *widget, gpointer data){
     g_print("Changed channel!\n");
 }
@@ -184,12 +188,10 @@ int main (int argc, char *argv[]) {
     
     name_dialog = gtk_dialog_new_with_buttons("Chitter-Chatter", GTK_WINDOW(window),
 					 flags, "Submit", GTK_RESPONSE_ACCEPT, NULL);
-    //name_dialog = gtk_dialog_new();
+    
     content_area = gtk_dialog_get_content_area(GTK_DIALOG(name_dialog));
     gtk_box_pack_start(GTK_BOX(content_area), label, TRUE, TRUE, 5); 
     gtk_box_pack_start(GTK_BOX(content_area), name_entry, TRUE, TRUE, 5); 
-    
-    //gtk_dialog_add_button(GTK_DIALOG(name_dialog), "Enter", 1);
     
     gtk_window_set_transient_for(GTK_WINDOW(name_dialog),GTK_WINDOW(window));
 
@@ -197,7 +199,8 @@ int main (int argc, char *argv[]) {
     gint response = gtk_dialog_run(GTK_DIALOG(name_dialog));
     
     if(response == GTK_RESPONSE_ACCEPT){
-      gtk_widget_destroy(name_dialog);
+        change_display_name((char *)gtk_entry_get_text(GTK_ENTRY(name_entry)));
+        gtk_widget_destroy(name_dialog);
     }
 
     client_id = connect_to_server(&client_sock);
