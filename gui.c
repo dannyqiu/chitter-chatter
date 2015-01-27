@@ -52,11 +52,14 @@ void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message) {
 
 void change_display_name(const gchar *name){
     // TODO: Button to do this?
+    if(strcmp(name, "")==0){
+        name = g_strdup_printf("Anonymous%d",client_id);
+    }
     g_strlcpy(display_name, name, DISPLAY_NAME_SIZE);
 }
 
 void on_create_channel_clicked(GtkWidget *widget, gpointer data){
-    gchar channel_name[1024];
+    gchar channel_name[CHANNEL_NAME_SIZE];
     GtkWidget *grid;
     GtkWidget *dialog;
     GtkWidget *entry;
@@ -82,7 +85,7 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
     gint response = gtk_dialog_run(GTK_DIALOG(dialog));
     
     if(response == GTK_RESPONSE_ACCEPT){
-        g_strlcpy(channel_name, gtk_entry_get_text(GTK_ENTRY(entry)),1024);
+        g_strlcpy(channel_name, gtk_entry_get_text(GTK_ENTRY(entry)),CHANNEL_NAME_SIZE);
         printf("Got channel name: %s\n",channel_name);
         gtk_widget_destroy(dialog);
     } else {
@@ -95,7 +98,7 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
 
 gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
     GtkTreeIter iter;
-    gchar *channel_name = (gchar*)malloc(1024*sizeof(gchar));
+    gchar *channel_name = (gchar*)malloc(CHANNEL_NAME_SIZE*sizeof(gchar));
     
     gtk_tree_selection_get_selected(selection, &list, &iter);
     gtk_tree_model_get(list, &iter, 0, &channel_name, -1);
@@ -143,6 +146,8 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
         } else {
             g_print("You've already joined this channel.\n");
             current_channel_id = selected_channel_id;
+            //clear chatlog
+            gtk_text_buffer_set_text(chat_buffer,"",0);
             printf("Switched to channel: %d\n",selected_channel_id);
         }
     } else {
@@ -183,16 +188,14 @@ void add_item_to_list(GtkListStore *list, gchar *item_name) {
 }
 
 gboolean key_event(GtkWidget *widget, GdkEventKey *event){
-    //g_printerr("%s\n", gdk_keyval_name (event->keyval));
-    GtkEntry *chatbox = (GtkEntry*)widget;
-    gchar *input = (gchar *)gtk_entry_get_text(chatbox);
+    //g_print("%s\n", gdk_keyval_name (event->keyval));
+    gchar *input = (gchar *)gtk_entry_get_text(GTK_ENTRY(chatbox));
     if (strcmp(gdk_keyval_name(event->keyval), "Return") == 0 && strcmp(input, "") != 0){
-        GtkTextBuffer *chat_buffer = gtk_text_view_get_buffer((GtkTextView *) chatlog);
         gchar *message = construct_message(display_name, input);
         append_to_chat_log(chat_buffer, message);
         send_message_to_server(client_sock, client_id, current_channel_id, message);
         g_free(message);
-        gtk_entry_set_text(chatbox, ""); //Resets the entry
+        gtk_entry_set_text(GTK_ENTRY(chatbox), ""); //Resets the entry
     }
     return TRUE;
 }

@@ -7,7 +7,7 @@
         <property name="border-width">10</property>
         <signal name="delete-event" handler="on_delete_event"/>
         <signal name="destroy" handler="gtk_main_quit"/>
-        
+        <signal name="key-release-event" handler="key_event"/>
         <child>
             <object id="channels" class="GtkListStore">
                 <columns>
@@ -115,7 +115,6 @@
                         <property name="visible">True</property>
                         <property name="width-chars">10</property>
                         <property name="max-width-chars">50</property>
-                        <signal name="key-release-event" handler="key_event"/>
                     </object>
                     <packing>
                         <property name="left-attach">1</property>
