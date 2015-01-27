@@ -351,7 +351,7 @@ char * build_channels_list_for_client() {
     int i;
     for (i=0; i<num_channels; ++i) {
         snprintf(buffer, sizeof(buffer), "%d,", channel_list[i]->channel_id);
-        if (channels_string_len + strlen(buffer) + 2 >= channels_string_len_max) {
+        if (channels_string_len + sizeof(buffer) >= channels_string_len_max) {
             channels_string_len_max += CHANNEL_STRING_LEN_INCREMENT;
             channels_string = (char *) realloc(channels_string, channels_string_len_max * sizeof(char));
         }
