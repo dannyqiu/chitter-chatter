@@ -92,10 +92,14 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
 
 gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
     GtkTreeIter iter;
-    gchar *channel_name = (gchar*)malloc(CHANNEL_NAME_SIZE*sizeof(gchar));
+    gchar *channel_name = (gchar *) malloc(CHANNEL_NAME_SIZE * sizeof(gchar));
     
-    gtk_tree_selection_get_selected(selection, &list, &iter);
-    gtk_tree_model_get(list, &iter, 0, &channel_name, -1);
+    if (gtk_tree_selection_get_selected(selection, &list, &iter)) {
+        gtk_tree_model_get(list, &iter, 0, &channel_name, -1);
+    }
+    else {
+        snprintf(channel_name, CHANNEL_NAME_SIZE, "%d", current_channel_id);
+    }
 
     printf("Channel name: %s\n",channel_name);
     return channel_name;
