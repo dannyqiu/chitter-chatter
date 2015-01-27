@@ -9,9 +9,9 @@ GObject *window;
 GObject *chatbox;
 GObject *channeltree;
 GObject *userchanneltree;
-GObject *users;
+GObject *userchannels;
 GObject *channels;
-GtkTextBuffer *buffer;
+GtkTextBuffer *chat_buffer;
 gchar display_name[DISPLAY_NAME_SIZE];
 
 int client_id;
@@ -95,28 +95,46 @@ gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
 }
 
 void on_channel_selection_changed(GtkWidget *selection, gpointer data){
-    gchar *channel_name =  get_selected_channel(GTK_TREE_MODEL(channels), GTK_TREE_SELECTION(selection));
+    int selected_channel_id = strtol(get_selected_channel(GTK_TREE_MODEL(channels), GTK_TREE_SELECTION(selection)),NULL,0);
 
-    GtkWidget *dialog;
-    GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
-    dialog = gtk_message_dialog_new(GTK_WINDOW(window), flags, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, "Do you want to join this channel?");
+    //TODO: Account for joining channels the client already is in
+    if(selected_channel_id != current_channel_id){
+        
+        //clear chatlog
+        gtk_text_buffer_set_text(chat_buffer,"",0);
+        
+        GtkWidget *dialog;
+        GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
+        dialog = gtk_message_dialog_new(GTK_WINDOW(window), flags, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, "Do you want to join this channel?");
 
-    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
-    switch (response){
-        case GTK_RESPONSE_YES:
-            send_join_channel_to_server(client_sock,client_id,strtol(channel_name,NULL,0)); 
-            gtk_widget_destroy(dialog);
-            g_print("Selected available channel.\n");
-            break;
-        default:
-            g_print("No change.\n");
-            gtk_widget_destroy(dialog);
-            break;
+        gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+        switch (response){
+            case GTK_RESPONSE_YES:
+                send_join_channel_to_server(client_sock,client_id,selected_channel_id); 
+                gtk_widget_destroy(dialog);
+                g_print("Selected available channel.\n");
+                break;
+            default:
+                g_print("No change.\n");
+                gtk_widget_destroy(dialog);
+                break;
+        }
+    } else {
+        g_print("You've already joined this channel.");
     }
 }
 
-void on_user_channel_selection_changed(GtkWidget *widget, gpointer data){
-    g_print("Changed user's channel!\n");
+void on_user_channel_selection_changed(GtkWidget *selection, gpointer data){
+    
+    int selected_channel_id = strtol(get_selected_channel(GTK_TREE_MODEL(userchannels), GTK_TREE_SELECTION(selection)),NULL,0);
+    
+    if(selected_channel_id != current_channel_id){
+        
+        //clear chatlog
+        gtk_text_buffer_set_text(chat_buffer,"",0);
+        
+        send_join_channel_to_server(client_sock,client_id,selected_channel_id);
+    }
 }
 
 void add_item_to_list(GtkListStore *list, gchar *item_name){
@@ -182,7 +200,7 @@ int main (int argc, char *argv[]) {
     
     builder = gtk_builder_new();
     gtk_builder_add_from_file(builder , "layout.ui" , NULL); 
-    buffer = gtk_text_buffer_new(NULL);
+    //buffer = gtk_text_buffer_new(NULL);
 
     window = gtk_builder_get_object(builder, "window");
     chatlog = gtk_builder_get_object(builder, "chatlog");
@@ -190,9 +208,10 @@ int main (int argc, char *argv[]) {
     channeltree = gtk_builder_get_object(builder, "channeltree"); 
     userchanneltree = gtk_builder_get_object(builder, "userchanneltree"); 
     channels = gtk_builder_get_object(builder, "channels");
-    users = gtk_builder_get_object(builder, "users");
+    userchannels = gtk_builder_get_object(builder, "userchannels");
      
-    gtk_text_view_set_buffer(GTK_TEXT_VIEW(chatlog), buffer); 
+    //gtk_text_view_set_buffer(GTK_TEXT_VIEW(chatlog), buffer); 
+    chat_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(chatlog));
 
     //connect signal handlers to gui
     gtk_builder_connect_signals(builder, NULL);
