@@ -192,7 +192,6 @@ int main (int argc, char *argv[]) {
     client_gchannel = g_io_channel_unix_new(client_sock);
 
     g_io_add_watch(client_gchannel, G_IO_IN, (GIOFunc) receive_data_from_server, NULL);
-    g_io_add_watch(client_gchannel, G_IO_HUP, (GIOFunc) close_connection_from_server, NULL);
 
     gtk_main ();
 
@@ -202,33 +201,44 @@ int main (int argc, char *argv[]) {
 gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gpointer data) {
     int client_sock = g_io_channel_unix_get_fd(source);
     struct chat_packet package;
-    recv(client_sock, &package, sizeof(struct chat_packet), 0);
-    if (package.type == TYPE_MESSAGE) {
-        char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
-        strncpy(recv_message, package.message, MSG_SIZE);
-        while (package.sequence < package.total) {
-            recv(client_sock, &package, sizeof(struct chat_packet), 0);
-            strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
+    int nbytes = recv(client_sock, &package, sizeof(struct chat_packet), 0);
+    if (nbytes <= 0) {
+        if (nbytes == 0) {
+            printf("Connection closed by the server :(\n");
         }
-        GtkTextBuffer *chat_buffer = gtk_text_view_get_buffer((GtkTextView *) chatlog);
-        append_to_chat_log(chat_buffer, recv_message);
-        g_print("\nReceived: %s\n", recv_message);
-        free(recv_message);
+        else {
+            print_error("Problem receiving data from the server");
+        }
+        cleanup_and_exit(1);
     }
-    else if (package.type == TYPE_JOIN_CHANNEL) {
-        current_channel_id = package.channel_id;
-        add_channel(package.channel_id);
-        g_print("Joined channel %d\n", package.channel_id);
-    }
-    else if (package.type == TYPE_CREATE_CHANNEL) {
-        //send_join_channel_to_server(client_sock, package.channel_id); // This line is not required because creator automatically joins channel
-        current_channel_id = package.channel_id;
-        add_channel(package.channel_id);
-        g_print("Created and changed to channel %d\n", package.channel_id);
+    else {
+        if (package.type == TYPE_MESSAGE) {
+            char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
+            strncpy(recv_message, package.message, MSG_SIZE);
+            while (package.sequence < package.total) {
+                recv(client_sock, &package, sizeof(struct chat_packet), 0);
+                strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
+            }
+            GtkTextBuffer *chat_buffer = gtk_text_view_get_buffer((GtkTextView *) chatlog);
+            append_to_chat_log(chat_buffer, recv_message);
+            g_print("\nReceived: %s\n", recv_message);
+            free(recv_message);
+        }
+        else if (package.type == TYPE_JOIN_CHANNEL) {
+            current_channel_id = package.channel_id;
+            add_channel(package.channel_id);
+            g_print("Joined channel %d\n", package.channel_id);
+        }
+        else if (package.type == TYPE_CREATE_CHANNEL) {
+            //send_join_channel_to_server(client_sock, package.channel_id); // This line is not required because creator automatically joins channel
+            current_channel_id = package.channel_id;
+            add_channel(package.channel_id);
+            g_print("Created and changed to channel %d\n", package.channel_id);
+        }
     }
     return TRUE;
 }
 
-gboolean close_connection_from_server(GIOChannel *source, GIOCondition condition, gpointer data) {
-    return FALSE;
+void cleanup_and_exit(int exit_code) {
+    exit(exit_code);
 }
