@@ -81,6 +81,19 @@ int is_client_id_taken(int client_id) {
     return 0;
 }
 
+struct client * get_client_by_sock(int sock_fd) {
+    int i;
+    for (i=0; i<num_clients; ++i) {
+        struct client *cur_client = client_list[i];
+        if (cur_client) {
+            if (cur_client->cli_sock == sock_fd) {
+                return cur_client;
+            }
+        }
+    }
+    return 0;
+}
+
 int add_channel_by_name(char *channel_name) {
     int channel_id = rand();
     while (is_channel_id_taken(channel_id)) {
@@ -102,30 +115,56 @@ int add_channel(int channel_id, char *channel_name) {
 }
 
 int is_channel_id_taken(int channel_id) {
-    int i;
-    for (i=0; i<num_channels; ++i) {
-        struct channel *cur_channel = channel_list[i];
-        if (cur_channel) {
-            if (cur_channel->channel_id == channel_id) {
-                return 1;
-            }
-        }
+    struct channel *cur_channel = get_channel_by_id(channel_id);
+    if (cur_channel) {
+        return 1;
     }
-    return 0;
+    else {
+        return 0;
+    }
 }
 
 void add_client_to_channel(int client_id, int channel_id) {
+    struct channel *cur_channel = get_channel_by_id(channel_id);
+    if (cur_channel) {
+        ++(cur_channel->num_clients);
+        cur_channel->cli_ids = (int *) realloc(cur_channel->cli_ids, cur_channel->num_clients * sizeof(int));
+        cur_channel->cli_ids[num_clients-1] = client_id;
+    }
+    else {
+        print_error("Attempted to add client to invalid channel");
+    }
+}
+
+int is_client_in_channel(int client_id, int channel_id) {
+    struct channel *cur_channel = get_channel_by_id(channel_id);
+    if (cur_channel) {
+        int i;
+        for (i=0; i<cur_channel->num_clients; ++i) {
+            if (cur_channel->cli_ids[i] == client_id) {
+                return 1;
+            }
+        }
+        return 0;
+    }
+    else {
+        print_error("Invalid channel to search for client");
+        return 1;
+    }
+}
+
+struct channel * get_channel_by_id(int channel_id) {
     int i;
     for (i=0; i<num_channels; ++i) {
         struct channel *cur_channel = channel_list[i];
         if (cur_channel) {
             if (cur_channel->channel_id == channel_id) {
-                ++(cur_channel->num_clients);
-                cur_channel->cli_ids = (int *) realloc(cur_channel->cli_ids, cur_channel->num_clients * sizeof(int));
-                cur_channel->cli_ids[num_clients-1] = client_id;
+                return cur_channel;
             }
         }
     }
+    print_error("Channel not found!");
+    return NULL;
 }
 
 int main() {

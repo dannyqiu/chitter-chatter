@@ -31,12 +31,16 @@ void cleanup();
 int add_client(int);
 void remove_client(int);
 int is_client_id_taken(int);
+struct client * get_client_by_sock(int);
 
 int add_channel(int, char *);
 int add_channel_by_name(char *);
 int is_channel_id_taken(int);
 void add_client_to_channel(int, int);
+int is_client_in_channel(int, int);
+struct channel * get_channel_by_id(int);
 char * build_channels_list_for_client();
 
 char * receive_message_from_client(int, struct chat_packet);
 void send_message_to_client(int, int, char *, int, int);
+
