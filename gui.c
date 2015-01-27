@@ -87,15 +87,21 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
 
 gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
     GtkTreeIter iter;
-    gchar *channel_name = malloc(1024);
+    gchar *channel_name = (gchar*)malloc(1024*sizeof(gchar));
+    channel_name = 0;
 
     gtk_tree_selection_get_selected(selection, &list, &iter);
-    gtk_tree_model_get(list, &iter, 0, channel_name, -1);
+    gtk_tree_model_get(list, &iter, 0, &channel_name, -1);
+
+    printf("Channel name: %s",channel_name);
     return channel_name;
 }
 
 void on_channel_selection_changed(GtkWidget *selection, gpointer data){
-    int selected_channel_id = strtol(get_selected_channel(GTK_TREE_MODEL(channels), GTK_TREE_SELECTION(selection)),NULL,0);
+    gchar * selected_channel = get_selected_channel(GTK_TREE_MODEL(channels), GTK_TREE_SELECTION(selection));
+
+    int selected_channel_id = atoi(selected_channel);
+    free(selected_channel);
 
     //TODO: Account for joining channels the client already is in
     if(selected_channel_id != current_channel_id){
@@ -120,20 +126,24 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
                 break;
         }
     } else {
+        printf("Channel: %d",selected_channel_id);
         g_print("You've already joined this channel.");
     }
 }
 
 void on_user_channel_selection_changed(GtkWidget *selection, gpointer data){
-    
-    int selected_channel_id = strtol(get_selected_channel(GTK_TREE_MODEL(userchannels), GTK_TREE_SELECTION(selection)),NULL,0);
+    gchar * selected_channel = get_selected_channel(GTK_TREE_MODEL(userchannels), GTK_TREE_SELECTION(selection));
+
+    int selected_channel_id = atoi(selected_channel);
+    free(selected_channel);
     
     if(selected_channel_id != current_channel_id){
         
         //clear chatlog
         gtk_text_buffer_set_text(chat_buffer,"",0);
         
-        send_join_channel_to_server(client_sock,client_id,selected_channel_id);
+        current_channel_id = selected_channel_id;
+        printf("Joined channel %d.",current_channel_id);
     }
 }
 
