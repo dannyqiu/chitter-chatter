@@ -1,5 +1,4 @@
 #include "gui.h"
-#include "client.h"
 
 void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
     GtkTextIter chat_end;
