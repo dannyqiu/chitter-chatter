@@ -1,9 +1,11 @@
 #include "gclient.h"
 #include "util.h"
 
+/* Used when client is running indepent of gui */
+/*
 int sock_fd; // Client sock to communicate with server
 int client_id; // ID of client assigned by server
-int channel_id;
+int channel_id; // ID of channel client is on
 
 static void signal_handler(int signo) {
     switch (signo) {
@@ -18,18 +20,15 @@ static void signal_handler(int signo) {
     }
 }
 
-void cleanup() {
-}
-
-int client() {
+int main() {
     signal(SIGINT, signal_handler);
+    signal(SIGPIPE, signal_handler);
     printf("Starting client...\n");
 
     client_id = connect_to_server(&sock_fd);
 
     int child_pid = fork();
     if (child_pid) { // Parent handles sending
-        /*
         while (1) {
             printf("Enter a message: ");
             fflush(stdout);
@@ -43,13 +42,10 @@ int client() {
                 exit(0);
             }
             else {
-                send_message_to_server(sock_fd, input, input_len);
+                send_message_to_server(sock_fd, client_id, channel_id, input);
             }
             free(input);
         }
-        */
-        send_create_channel_to_server(sock_fd, client_id, "CRAZYYYY");
-        wait(NULL);
     }
     else { // Child handles receiving
         while (1) {
@@ -66,13 +62,21 @@ int client() {
                 exit(1);
             }
             else {
+               char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
+                strncpy(recv_message, package.message, MSG_SIZE);
+                while (package.sequence < package.total) {
+                    recv(client_sock, &package, sizeof(struct chat_packet), 0);
+                    strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
+                }
+                g_print("\nReceived: %s\n", recv_message);
+                free(recv_message);
             }
         }
         cleanup();
     }
-
     return 0;
 }
+*/
 
 int connect_to_server(int *sock_fd) {
     struct sockaddr_in cli_addr;
@@ -148,7 +152,7 @@ void send_get_channels_to_server(int sock_fd) {
 }
 
 // Output needs to be freed
-int * get_channels() {
+int * get_channels(int client_id) {
     if (access(PROFILE_FOLDER, F_OK) < 0) { // Folder does not exist
         if (mkdir(PROFILE_FOLDER, 0755) < 0) {
             print_error("Problem creating directory");
@@ -178,7 +182,7 @@ int * get_channels() {
     return channel_ids;
 }
 
-void add_channel(int channel_id) {
+void add_channel(int client_id, int channel_id) {
     if (access(PROFILE_FOLDER, F_OK) < 0) { // Folder does not exist
         if (mkdir(PROFILE_FOLDER, 0755) < 0) {
             print_error("Problem creating directory");
@@ -198,8 +202,8 @@ void add_channel(int channel_id) {
     close(profilefd);
 }
 
-int is_channel_in_client_channels(int channel_id) {
-    int *client_channel_ids = get_channels();
+int is_channel_in_client_channels(int client_id, int channel_id) {
+    int *client_channel_ids = get_channels(client_id);
     int i;
     for (i=0; client_channel_ids[i] != -1; ++i) {
         if (client_channel_ids[i] == channel_id) {

@@ -111,7 +111,7 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
 
     if(selected_channel_id != current_channel_id){
         
-        if (!is_channel_in_client_channels(selected_channel_id)) {
+        if (!is_channel_in_client_channels(client_id, selected_channel_id)) {
             GtkWidget *dialog;
             GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
             dialog = gtk_message_dialog_new(GTK_WINDOW(window), flags, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, "Do you want to join this channel?");
@@ -319,7 +319,7 @@ gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gp
         }
         else if (package.type == TYPE_JOIN_CHANNEL) {
             current_channel_id = package.channel_id;
-            add_channel(package.channel_id);
+            add_channel(client_id, package.channel_id);
             g_print("Joined channel %d\n", package.channel_id);
             gchar gchannel_id[16];
             snprintf(gchannel_id, sizeof(gchannel_id), "%d", package.channel_id);
@@ -328,7 +328,7 @@ gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gp
         else if (package.type == TYPE_CREATE_CHANNEL) {
             //send_join_channel_to_server(client_sock, package.channel_id); // This line is not required because creator automatically joins channel
             current_channel_id = package.channel_id;
-            add_channel(package.channel_id);
+            add_channel(client_id, package.channel_id);
             g_print("Created and changed to channel %d\n", package.channel_id);
             gchar gchannel_id[16];
             snprintf(gchannel_id, sizeof(gchannel_id), "%d", package.channel_id);
