@@ -32,7 +32,8 @@ int add_client(int);
 void remove_client(int);
 int is_client_id_taken(int);
 
-int add_channel(char *);
+int add_channel(int, char *);
+int add_channel_by_name(char *);
 int is_channel_id_taken(int);
 void add_client_to_channel(int, int);
 char * build_channels_list_for_client();

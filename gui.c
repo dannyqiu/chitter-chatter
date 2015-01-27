@@ -262,6 +262,7 @@ int main (int argc, char *argv[]) {
     client_id = connect_to_server(&client_sock);
     client_gchannel = g_io_channel_unix_new(client_sock);
     send_get_channels_to_server(client_sock); // Get initial listing of channels
+    send_join_channel_to_server(client_sock, client_id, MASTER_CHANNEL); // Join the default master channel
 
     g_io_add_watch(client_gchannel, G_IO_IN, (GIOFunc) receive_data_from_server, NULL);
 
