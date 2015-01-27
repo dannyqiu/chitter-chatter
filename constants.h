@@ -9,6 +9,8 @@ static const char *PROFILE_FOLDER = "profile";
 #define CHANNEL_NAME_SIZE 256
 #define DISPLAY_NAME_SIZE 128
 
+#define MASTER_CHANNEL 99
+
 /* Message types */
 #define TYPE_MESSAGE 0
 #define TYPE_JOIN_CHANNEL 1

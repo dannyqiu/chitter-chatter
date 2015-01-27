@@ -81,11 +81,15 @@ int is_client_id_taken(int client_id) {
     return 0;
 }
 
-int add_channel(char *channel_name) {
+int add_channel_by_name(char *channel_name) {
     int channel_id = rand();
     while (is_channel_id_taken(channel_id)) {
         channel_id = rand();
     }
+    return add_channel(channel_id, channel_name);
+}
+
+int add_channel(int channel_id, char *channel_name) {
     ++num_channels;
     channel_list = (struct channel **) realloc(channel_list, num_channels * sizeof(struct channel *));
     struct channel *new_channel = (struct channel *) malloc(sizeof(struct channel));
@@ -170,6 +174,9 @@ int main() {
     FD_SET(listen_sock, &masterfds); // Add the listening sock to master
     fdmax = listen_sock; // Listening sock is currently highest FD
 
+    /* Add initial master channel that every client defaults to */
+    add_channel(MASTER_CHANNEL, "Master Channel");
+
     while (1) {
         readfds = masterfds;
         if (select(fdmax+1, &readfds, NULL, NULL, NULL) < 0) {
@@ -235,7 +242,7 @@ int main() {
                             send(currentfd, &initial_package, sizeof(struct chat_packet), 0); // Server sends acknowledgement of join
                         }
                         else if (initial_package.type == TYPE_CREATE_CHANNEL) {
-                            int channel_id = add_channel(initial_package.message);
+                            int channel_id = add_channel_by_name(initial_package.message);
                             add_client_to_channel(initial_package.client_id, channel_id);
                             printf("Channel %s created with ID %d by Client %d\n", initial_package.message, channel_id, initial_package.client_id);
                             initial_package.channel_id = channel_id;
