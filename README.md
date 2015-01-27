@@ -20,7 +20,7 @@ An upgrade to instant messaging where channels are in style. Create a channel, h
 ### BUGS
 
 - While working with GUI's we encountered the inherent "Heisenbugs" where the program would SEGFAULT and we would be unable to reproduce the error. Please use this at your own risk.
-    - ~~We mostly see the SEGFAULTS occuring in creating and joining channels due to the way GTK+'s `TreeView` works.~~ We believe that this was fixed in d9f3ac5, eb69fca
+    - ~~We mostly see the SEGFAULTS occuring in creating and joining channels due to the way GTK+'s `TreeView` works.~~ We believe that this was fixed in d9f3ac5
 
 ### List of Files
 
