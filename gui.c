@@ -23,8 +23,8 @@ int client_sock;
 GIOChannel *client_gchannel;
 int current_channel_id;
 
-void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
-    GtkTextIter chat_end;
+// Needs to be freed
+gchar * construct_message(gchar *display_name, gchar *message) {
     gchar timestamp[TIMESTAMP_SIZE]; //placeholders
     time_t current_time;
     struct tm *timeinfo;
@@ -34,16 +34,16 @@ void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
     timeinfo = localtime(&current_time);
     strftime(timestamp, TIMESTAMP_SIZE, "%H:%M", timeinfo); 
 
+    return g_strdup_printf("[%s] %s: %s\n", timestamp, display_name, message);
+}
+
+void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message) {
+    GtkTextIter chat_end;
     gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
-    //g_print("Got iter\n");
-    
-    gchar *display_message = g_strdup_printf("[%s] %s: %s\n", timestamp, display_name, message);
     
     //insert message to chatlog
     //g_print("Append: %s\n",message);
-    gtk_text_buffer_insert(chat_buffer,&chat_end,display_message,-1);
-
-    g_free(display_message);
+    gtk_text_buffer_insert(chat_buffer, &chat_end, message, -1);
 }
 
 GtkTextBuffer* get_chat_log(GtkEntry *chatbox){
@@ -105,11 +105,13 @@ gboolean key_event(GtkWidget *widget, GdkEventKey *event){
     //g_printerr("%s\n", gdk_keyval_name (event->keyval));
     GtkEntry *chatbox = (GtkEntry*)widget;
     gchar *input = (gchar *)gtk_entry_get_text(chatbox);
-    if(strcmp(gdk_keyval_name(event->keyval),"Return")==0 && strcmp(input, "") != 0){
-        GtkTextBuffer * chat_buffer = get_chat_log(chatbox);
-        append_to_chat_log(chat_buffer, input);
-        send_message_to_server(client_sock, client_id, current_channel_id, input);
-        gtk_entry_set_text(chatbox,"");//Resets the entry
+    if (strcmp(gdk_keyval_name(event->keyval), "Return") == 0 && strcmp(input, "") != 0){
+        GtkTextBuffer *chat_buffer = get_chat_log(chatbox);
+        gchar *message = construct_message(display_name, input);
+        append_to_chat_log(chat_buffer, message);
+        send_message_to_server(client_sock, client_id, current_channel_id, message);
+        g_free(message);
+        gtk_entry_set_text(chatbox, "");//Resets the entry
     }
     return TRUE;
 }
