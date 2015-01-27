@@ -84,7 +84,7 @@
                 <child>
                     <object id="chatbox" class="GtkEntry">
                         <property name="visible">True</property>
-                        <property name="width-chars">10</property>
+                        <property name="width-chars">50</property>
                         <property name="max-width-chars">50</property>
                         <signal name="key-release-event" handler="key_event"/>
                     </object>

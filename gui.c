@@ -140,6 +140,7 @@ int main (int argc, char *argv[]) {
 
     //Main Chat Program
     GtkBuilder *builder;
+    GObject *window;
     GObject *chatlog;
     GObject *chatbox;
     GObject *users;
@@ -152,6 +153,7 @@ int main (int argc, char *argv[]) {
 
     chatlog = gtk_builder_get_object(builder, "chatlog");
     chatbox = gtk_builder_get_object(builder, "chatbox");
+    window = gtk_builder_get_object(builder, "window");
     channels = gtk_builder_get_object(builder, "channels");
     users = gtk_builder_get_object(builder, "users");
      
@@ -167,11 +169,35 @@ int main (int argc, char *argv[]) {
     add_item_to_list((GtkListStore*)users, (gchar*)"admin");
 
     //Name Grabber
+    GtkWidget *grid;
     GtkWidget *dialog;
-    GtkDialogFlags flags = GTK_DIALOG_MODAL;
-    //dialog = gtk_dialog_with_new_buttons("Chitter-Chatter",
-					 
+    GtkWidget *name;
 
+    grid = gtk_grid_new();
+
+    name = gtk_entry_new();
+    gtk_entry_set_visibility(GTK_ENTRY(name) , TRUE);
+    gtk_entry_set_max_length(GTK_ENTRY(name) , 20);
+
+    gtk_grid_attach(GTK_GRID(grid),
+		    name,
+		    0,0,1,1);
+    
+    GtkDialogFlags flags = GTK_DIALOG_MODAL;
+    
+    dialog = gtk_dialog_new_with_buttons("Chitter-Chatter",
+					 GTK_WINDOW(window),
+					 flags,
+					 "Enter",
+					 GTK_RESPONSE_ACCEPT,
+					 NULL);
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+
+    gtk_dialog_add_action_widget(GTK_DIALOG(dialog), grid, 1);
+
+    if(response == GTK_RESPONSE_ACCEPT){
+      gtk_widget_destroy(dialog);
+    }
 
     gtk_main ();
 
