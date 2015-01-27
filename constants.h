@@ -4,8 +4,10 @@ static const char *SERVER_IP = "127.0.0.1";
 #define PROFILE_PATH_SIZE 32
 static const char *PROFILE_FOLDER = "profile";
 
+#define TIMESTAMP_SIZE 10 
 #define MSG_SIZE 512
 #define CHANNEL_NAME_SIZE 256
+#define DISPLAY_NAME_SIZE 128
 
 /* Message types */
 #define TYPE_MESSAGE 0

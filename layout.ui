@@ -7,19 +7,36 @@
         <property name="border-width">10</property>
         <signal name="delete-event" handler="on_delete_event"/>
         <signal name="destroy" handler="gtk_main_quit"/>
+        
         <child>
-            <object id="clients" class="GtkListStore">
+            <object id="channels" class="GtkListStore">
                 <columns>
-                    <!-- column-name Available Clients -->
+                    <!-- column-name Channels -->
                     <column type="gchararray"/>
                 </columns>
                 <data>
                     <!-- Placeholder data for testing purposes -->
                     <row>
-                        <col id="0">cslab307-13</col>
+                        <col id="0">awesomeness</col>
                     </row>
                     <row>
-                        <col id="0">cslab307-15</col>
+                        <col id="0">stuycs</col>
+                    </row>
+                </data>
+            </object>
+            
+            <object id="users" class="GtkListStore">
+                <columns>
+                    <!-- column-name Users -->
+                    <column type="gchararray"/>
+                </columns>
+                <data>
+                    <!-- Placeholder data for testing purposes -->
+                    <row>
+                        <col id="0">bob</col>
+                    </row>
+                    <row>
+                        <col id="0">alison</col>
                     </row>
                 </data>
             </object>
@@ -29,19 +46,19 @@
                 <property name="column-spacing">15</property>
                 <property name="row-spacing">15</property>
                 <child>
-                    <object id="clientwindow" class="GtkScrolledWindow">
+                    <object id="channelwindow" class="GtkScrolledWindow">
                         <property name="visible">True</property>
                         <property name="expand">True</property>
                         <child>
-                            <object id="clienttree" class="GtkTreeView">
+                            <object id="channeltree" class="GtkTreeView">
                                 <property name="visible">True</property>
-                                <property name="model">clients</property>
+                                <property name="model">channels</property>
                                 <child>
-                                    <object id="test-column" class="GtkTreeViewColumn">
-                                        <property name="title">Available Clients</property>
+                                    <object id="channelcol" class="GtkTreeViewColumn">
+                                        <property name="title">Channels</property>
                                         <property name="expand">True</property>
                                         <child>
-                                            <object id="test-renderer" class="GtkCellRendererText"/>
+                                            <object id="channel-renderer" class="GtkCellRendererText"/>
                                             <attributes>
                                                 <attribute name="text">0</attribute>
                                             </attributes>
@@ -49,8 +66,8 @@
                                     </object>  
                                 </child>
                                 <child internal-child="selection">
-                                    <object id="selection" class="GtkTreeSelection">
-                                        <signal name="changed" handler="on_clientlist_selection_changed"/>
+                                    <object id="channelselection" class="GtkTreeSelection">
+                                        <signal name="changed" handler="on_channel_selection_changed"/>
                                     </object>
                                 </child>
                             </object>
@@ -94,17 +111,39 @@
                     </packing>
                 </child>
                 <child>
-                    <object id="control1" class="GtkButton">
+                    <object id="userwindow" class="GtkScrolledWindow">
                         <property name="visible">True</property>
                         <property name="expand">True</property>
-                        <property name="label">Control Panel</property>
+                        <child>
+                            <object id="usertree" class="GtkTreeView">
+                                <property name="visible">True</property>
+                                <property name="model">users</property>
+                                <child>
+                                    <object id="usercol" class="GtkTreeViewColumn">
+                                        <property name="title">Users in Channel</property>
+                                        <property name="expand">True</property>
+                                        <child>
+                                            <object id="user-renderer" class="GtkCellRendererText"/>
+                                            <attributes>
+                                                <attribute name="text">0</attribute>
+                                            </attributes>
+                                        </child>
+                                    </object>  
+                                </child>
+                                <child internal-child="selection">
+                                    <object id="userselection" class="GtkTreeSelection">
+                                        <signal name="changed" handler="on_user_selection_changed"/>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
                     </object>
                     <packing>
                         <property name="left-attach">2</property>
                         <property name="top-attach">0</property>
                         <property name="height">2</property>
                     </packing>
-                </child> 
+                </child>
             </object>
         </child>
     </object>
