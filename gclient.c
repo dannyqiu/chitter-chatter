@@ -195,6 +195,7 @@ void add_channel(int channel_id) {
     if (write(profilefd, buffer, strlen(buffer)) < 0) {
         print_error("Problem with writing to profile file");
     }
+    close(profilefd);
 }
 
 int is_channel_in_client_channels(int channel_id) {

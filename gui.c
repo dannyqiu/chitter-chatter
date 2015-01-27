@@ -18,6 +18,7 @@ int client_id;
 int client_sock;
 GIOChannel *client_gchannel;
 int current_channel_id;
+int num_channels;
 
 // Needs to be freed
 gchar * construct_message(gchar *display_name, gchar *message) {
@@ -88,8 +89,7 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
 gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
     GtkTreeIter iter;
     gchar *channel_name = (gchar*)malloc(1024*sizeof(gchar));
-    //channel_name = 0;
-
+    
     gtk_tree_selection_get_selected(selection, &list, &iter);
     gtk_tree_model_get(list, &iter, 0, &channel_name, -1);
 
@@ -98,10 +98,16 @@ gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
 }
 
 void on_channel_selection_changed(GtkWidget *selection, gpointer data){
+    printf("Num channels: %d\n",num_channels);
+    if(gtk_tree_selection_count_selected_rows(GTK_TREE_SELECTION(selection)) != num_channels || num_channels == 0){
+        return;
+    }
     gchar * selected_channel = get_selected_channel(GTK_TREE_MODEL(channels), GTK_TREE_SELECTION(selection));
-
+    if(selected_channel == NULL){
+        g_print("NULL!!\n");
+    }
     int selected_channel_id = atoi(selected_channel);
-    //free(selected_channel);
+    free(selected_channel);
 
     //TODO: Account for joining channels the client already is in
     if(selected_channel_id != current_channel_id){
@@ -109,7 +115,6 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
         //clear chatlog
         gtk_text_buffer_set_text(chat_buffer,"",0);
         
-        if (!is_channel_in_client_channels(selected_channel_id)) {
             GtkWidget *dialog;
             GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
             dialog = gtk_message_dialog_new(GTK_WINDOW(window), flags, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, "Do you want to join this channel?");
@@ -126,6 +131,24 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
                     gtk_widget_destroy(dialog);
                     break;
             }
+        if (!is_channel_in_client_channels(selected_channel_id)) {
+            GtkWidget *dialog;
+            GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
+            dialog = gtk_message_dialog_new(GTK_WINDOW(window), flags, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, "Do you want to join this channel?");
+
+            gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+            switch (response){
+                case GTK_RESPONSE_YES:
+                    send_join_channel_to_server(client_sock,client_id,selected_channel_id); 
+                    current_channel_id = selected_channel_id;
+                    
+                    gtk_widget_destroy(dialog);
+                    g_print("Joined available channel.\n");
+                    break;
+                default:
+                    g_print("No change.\n");
+                    gtk_widget_destroy(dialog);
+                    break;
         }
     } else {
         printf("Channel: %d\n",selected_channel_id);
@@ -211,7 +234,8 @@ gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data) {
 int main (int argc, char *argv[]) {
 
     gtk_init (&argc, &argv);
-    
+   
+    num_channels = 0; 
     builder = gtk_builder_new();
     gtk_builder_add_from_file(builder , "layout.ui" , NULL); 
     //buffer = gtk_text_buffer_new(NULL);
@@ -330,14 +354,22 @@ gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gp
                 strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
             }
             g_print("Channel List: %s\n", recv_message);
+            
+            GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(channeltree));
+            gtk_tree_selection_unselect_all(selection);
+            num_channels = 0;
+
             gtk_list_store_clear((GtkListStore *) channels);
             gchar *token, *current_pos;
             current_pos = recv_message;
             while ((token = strsep(&current_pos, ",")) != NULL) {
                 if (strcmp(token, "") != 0) {
+                    num_channels++;
                     add_item_to_list((GtkListStore *) channels, token);
+                    gtk_tree_selection_unselect_all(selection);
                 }
             }
+            printf("Num channels: %d\n",num_channels);
             free(recv_message);
         }
     }
