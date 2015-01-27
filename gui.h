@@ -2,7 +2,6 @@
 #include <glib-object.h>
 #include <time.h>
 #include <string.h>
-#include "client.h"
 
 void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message);
 GtkTextBuffer* get_chat_log(GtkEntry *chatbox);

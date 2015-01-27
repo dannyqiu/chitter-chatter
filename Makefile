@@ -3,8 +3,8 @@ GTK_LIBS=`pkg-config --libs gtk+-3.0`
 FLAGS=-Wall -Wno-unused-variable -Wno-unused-function -rdynamic
 UTIL_FILES = util.c
 
-gui: clean setup gui.c
-	gcc $(FLAGS) $(GTK_FLAGS) -o build/gui gui.c $(GTK_LIBS)
+gui: setup gui.c client.c
+	gcc $(FLAGS) $(GTK_FLAGS) -o build/gui gui.c gclient.c $(UTIL_FILES) $(GTK_LIBS)
 
 all: setup server client
 
