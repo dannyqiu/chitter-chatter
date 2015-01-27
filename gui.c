@@ -1,5 +1,5 @@
 #include "gui.h"
-#include "client.h"
+#include "gclient.h"
 #include "util.h"
 
 //Main Chat Program
@@ -103,7 +103,7 @@ gboolean key_event(GtkWidget *widget, GdkEventKey *event){
     if(strcmp(gdk_keyval_name(event->keyval),"Return")==0 && strcmp(input, "") != 0){
         GtkTextBuffer * chat_buffer = get_chat_log(chatbox);
         append_to_chat_log(chat_buffer, input);
-        send_message_to_server(client_sock, input, strlen(input));
+        send_message_to_server(client_sock, client_id, current_channel_id, input);
         gtk_entry_set_text(chatbox,"");//Resets the entry
     }
     return TRUE;

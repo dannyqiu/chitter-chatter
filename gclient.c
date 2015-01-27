@@ -1,4 +1,4 @@
-#include "client.h"
+#include "gclient.h"
 #include "util.h"
 
 int sock_fd; // Client sock to communicate with server
@@ -48,7 +48,7 @@ int client() {
             free(input);
         }
         */
-        send_create_channel_to_server(sock_fd, "CRAZYYYY");
+        send_create_channel_to_server(sock_fd, client_id, "CRAZYYYY");
         wait(NULL);
     }
     else { // Child handles receiving
@@ -103,8 +103,8 @@ int connect_to_server(int *sock_fd) {
     return client_id_from_server;
 }
 
-void send_message_to_server(int sock_fd, char *message, size_t message_len) {
-    int num_packets = message_len / MSG_SIZE;
+void send_message_to_server(int sock_fd, int client_id, int channel_id, char *message) {
+    int num_packets = strlen(message) / MSG_SIZE;
     int n;
     for (n=0; n<=num_packets; ++n) {
         struct chat_packet package;
@@ -112,13 +112,13 @@ void send_message_to_server(int sock_fd, char *message, size_t message_len) {
         package.total = num_packets;
         package.type = TYPE_MESSAGE;
         package.client_id = client_id;
-        package.channel_id = get_current_channel();
+        package.channel_id = channel_id;
         strncpy(package.message, message + (n * MSG_SIZE), MSG_SIZE);
         send(sock_fd, &package, sizeof(struct chat_packet), 0);
     }
 }
 
-void send_join_channel_to_server(int sock_fd, int channel_id) {
+void send_join_channel_to_server(int sock_fd, int client_id, int channel_id) {
     struct chat_packet package;
     package.sequence = 0;
     package.total = 0;
@@ -128,7 +128,7 @@ void send_join_channel_to_server(int sock_fd, int channel_id) {
     send(sock_fd, &package, sizeof(struct chat_packet), 0);
 }
 
-void send_create_channel_to_server(int sock_fd, char *channel_name) {
+void send_create_channel_to_server(int sock_fd, int client_id, char *channel_name) {
     struct chat_packet package;
     package.sequence = 0;
     package.total = 0;
