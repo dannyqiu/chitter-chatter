@@ -32,8 +32,7 @@ void change_current_channel(int);
 #define SEM_KEY_FILE "README.md"
 #define KEY_ID 694
 
-#if defined(__FreeBSD__)
-#else
+#if defined(__FreeBSD__) || defined(__GNU_LIBRARY__)
     union semun {
         int     val;            /* value for SETVAL */
         struct  semid_ds *buf;  /* buffer for IPC_STAT & IPC_SET */
