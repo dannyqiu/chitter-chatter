@@ -22,3 +22,4 @@ void send_get_channels_to_server(int);
 
 int * get_channels();
 void add_channel(int);
+int is_channel_in_client_channels(int);

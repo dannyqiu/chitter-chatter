@@ -162,6 +162,7 @@ int * get_channels() {
     read(profilefd, channels_string, file_size);
     close(profilefd);
     char *token, *current_pos;
+    current_pos = channels_string;
     int num_channels = 0;
     int *channel_ids = (int *) malloc(num_channels * sizeof(int));
     while ((token = strsep(&current_pos, "\n")) != NULL) {
@@ -169,6 +170,10 @@ int * get_channels() {
         channel_ids = (int *) realloc(channel_ids, num_channels * sizeof(int));
         channel_ids[num_channels-1] = atoi(token);
     }
+    /* Add NULL to end */
+    ++num_channels;
+    channel_ids = (int *) realloc(channel_ids, num_channels * sizeof(int));
+    channel_ids[num_channels-1] = -1;
     free(channels_string);
     return channel_ids;
 }
@@ -190,5 +195,17 @@ void add_channel(int channel_id) {
     if (write(profilefd, buffer, strlen(buffer)) < 0) {
         print_error("Problem with writing to profile file");
     }
-    close(profilefd);
+}
+
+int is_channel_in_client_channels(int channel_id) {
+    int *client_channel_ids = get_channels();
+    int i;
+    for (i=0; client_channel_ids[i] != -1; ++i) {
+        if (client_channel_ids[i] == channel_id) {
+            free(client_channel_ids);
+            return 1;
+        }
+    }
+    free(client_channel_ids);
+    return 0;
 }
