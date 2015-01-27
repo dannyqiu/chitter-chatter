@@ -135,8 +135,9 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
             }
         }
     } else {
-        printf("Channel: %d\n",selected_channel_id);
         g_print("You've already joined this channel.\n");
+        current_channel_id = selected_channel_id;
+        printf("Switched to channel: %d\n",selected_channel_id);
     }
 }
 
