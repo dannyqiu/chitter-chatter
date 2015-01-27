@@ -52,7 +52,7 @@ void change_display_name(const gchar *name){
 }
 
 void on_create_channel_clicked(GtkWidget *widget, gpointer data){
-    gchar channel_name[1024];
+    gchar channel_name[CHANNEL_NAME_SIZE];
     GtkWidget *grid;
     GtkWidget *dialog;
     GtkWidget *entry;
@@ -78,7 +78,7 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
     gint response = gtk_dialog_run(GTK_DIALOG(dialog));
     
     if(response == GTK_RESPONSE_ACCEPT){
-        g_strlcpy(channel_name, gtk_entry_get_text(GTK_ENTRY(entry)),1024);
+        g_strlcpy(channel_name, gtk_entry_get_text(GTK_ENTRY(entry)),CHANNEL_NAME_SIZE);
         printf("Got channel name: %s\n",channel_name);
         gtk_widget_destroy(dialog);
     } else {
@@ -91,7 +91,7 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
 
 gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
     GtkTreeIter iter;
-    gchar *channel_name = (gchar*)malloc(1024*sizeof(gchar));
+    gchar *channel_name = (gchar*)malloc(CHANNEL_NAME_SIZE*sizeof(gchar));
     
     gtk_tree_selection_get_selected(selection, &list, &iter);
     gtk_tree_model_get(list, &iter, 0, &channel_name, -1);
