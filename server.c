@@ -270,7 +270,10 @@ int main() {
                             int recipient;
                             for (recipient=0; recipient<=fdmax; ++recipient) {
                                 if (FD_ISSET(recipient, &masterfds) && recipient != currentfd && recipient != listen_sock) {
-                                    send_message_to_client(recipient, TYPE_MESSAGE, recv_message, initial_package.client_id, initial_package.channel_id);
+                                    struct client *cur_client = get_client_by_sock(recipient);
+                                    if (is_client_in_channel(cur_client->cli_id, initial_package.channel_id)) { // Only send message to clients that are part of the channel
+                                        send_message_to_client(recipient, TYPE_MESSAGE, recv_message, initial_package.client_id, initial_package.channel_id);
+                                    }
                                 }
                             }
                             free(recv_message);
