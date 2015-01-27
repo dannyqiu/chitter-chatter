@@ -279,6 +279,7 @@ int main (int argc, char *argv[]) {
         gtk_widget_destroy(name_dialog);
     } else {
         change_display_name(g_strdup_printf("Anonymous%d",client_id));
+        gtk_widget_destroy(name_dialog);
     }
 
     gtk_main ();
