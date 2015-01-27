@@ -181,16 +181,14 @@ void add_item_to_list(GtkListStore *list, gchar *item_name) {
 }
 
 gboolean key_event(GtkWidget *widget, GdkEventKey *event){
-    g_print("%s\n", gdk_keyval_name (event->keyval));
-    GtkEntry *chatbox = (GtkEntry*)widget;
-    gchar *input = (gchar *)gtk_entry_get_text(chatbox);
+    //g_print("%s\n", gdk_keyval_name (event->keyval));
+    gchar *input = (gchar *)gtk_entry_get_text(GTK_ENTRY(chatbox));
     if (strcmp(gdk_keyval_name(event->keyval), "Return") == 0 && strcmp(input, "") != 0){
-        GtkTextBuffer *chat_buffer = gtk_text_view_get_buffer((GtkTextView *) chatlog);
         gchar *message = construct_message(display_name, input);
         append_to_chat_log(chat_buffer, message);
         send_message_to_server(client_sock, client_id, current_channel_id, message);
         g_free(message);
-        gtk_entry_set_text(chatbox, ""); //Resets the entry
+        gtk_entry_set_text(GTK_ENTRY(chatbox), ""); //Resets the entry
     }
     return TRUE;
 }
