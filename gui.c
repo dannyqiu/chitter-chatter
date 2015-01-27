@@ -11,12 +11,6 @@ GObject *users;
 GObject *channels;
 GtkTextBuffer *buffer;
 gchar display_name[DISPLAY_NAME_SIZE];
-//Popup Dialog
-GtkWidget *grid;
-GtkWidget *name_dialog;
-GtkWidget *name_entry;
-GtkWidget *label;
-GtkWidget *content_area;
 
 int client_id;
 int client_sock;
@@ -52,10 +46,41 @@ void change_display_name(const gchar *name){
 }
 
 void on_create_channel_clicked(GtkWidget *widget, gpointer data){
-    // TODO: Allow client to specify name of the channel
-    gchar *channel_name = g_strdup_printf("> Channel by %d <", client_id);
+    gchar channel_name[1024];
+    GtkWidget *grid;
+    GtkWidget *dialog;
+    GtkWidget *entry;
+    GtkWidget *label;
+    GtkWidget *content_area;
+
+    label = gtk_label_new("Enter your desired channel name.");
+    entry = gtk_entry_new();
+    gtk_entry_set_visibility(GTK_ENTRY(entry) , TRUE);
+    gtk_entry_set_max_length(GTK_ENTRY(entry) , 20);
+    
+    GtkDialogFlags flags = GTK_DIALOG_MODAL;
+    
+    dialog = gtk_dialog_new_with_buttons("Chitter-Chatter", GTK_WINDOW(window), flags, "Submit", GTK_RESPONSE_ACCEPT, NULL);
+    
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+    gtk_box_pack_start(GTK_BOX(content_area), label, TRUE, TRUE, 5); 
+    gtk_box_pack_start(GTK_BOX(content_area), entry, TRUE, TRUE, 5); 
+    
+    gtk_window_set_transient_for(GTK_WINDOW(dialog),GTK_WINDOW(window));
+
+    gtk_widget_show_all(dialog);
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    
+    if(response == GTK_RESPONSE_ACCEPT){
+        g_strlcpy(channel_name, gtk_entry_get_text(GTK_ENTRY(entry)),1024);
+        printf("Got channel name: %s\n",channel_name);
+        gtk_widget_destroy(dialog);
+    } else {
+        sprintf(channel_name, "> Channel by %d <", client_id);
+    }
+    
     send_create_channel_to_server(client_sock, client_id, channel_name);
-    g_free(channel_name);
+    //g_free(channel_name);
 }
 
 void on_channel_selection_changed(GtkWidget *widget, gpointer data){
@@ -145,10 +170,13 @@ int main (int argc, char *argv[]) {
     //set focus to chatbox 
     gtk_widget_grab_focus((GtkWidget*)chatbox);
 
-    add_item_to_list((GtkListStore*)channels, (gchar*)"a channel");
-    add_item_to_list((GtkListStore*)users, (gchar*)"admin");
-   
     //Popup Window Code here
+    GtkWidget *grid;
+    GtkWidget *name_dialog;
+    GtkWidget *name_entry;
+    GtkWidget *label;
+    GtkWidget *content_area;
+
     label = gtk_label_new("Enter your desired display name.");
 
     name_entry = gtk_entry_new();
@@ -157,15 +185,13 @@ int main (int argc, char *argv[]) {
     
     GtkDialogFlags flags = GTK_DIALOG_MODAL;
     
-    name_dialog = gtk_dialog_new_with_buttons("Chitter-Chatter", GTK_WINDOW(window),
-					 flags, "Submit", GTK_RESPONSE_ACCEPT, NULL);
+    name_dialog = gtk_dialog_new_with_buttons("Chitter-Chatter", GTK_WINDOW(window), flags, "Submit", GTK_RESPONSE_ACCEPT, NULL);
     
     content_area = gtk_dialog_get_content_area(GTK_DIALOG(name_dialog));
     gtk_box_pack_start(GTK_BOX(content_area), label, TRUE, TRUE, 5); 
     gtk_box_pack_start(GTK_BOX(content_area), name_entry, TRUE, TRUE, 5); 
     
     gtk_window_set_transient_for(GTK_WINDOW(name_dialog),GTK_WINDOW(window));
-
     gtk_widget_show_all(name_dialog);
     gint response = gtk_dialog_run(GTK_DIALOG(name_dialog));
     
@@ -173,7 +199,7 @@ int main (int argc, char *argv[]) {
         change_display_name(gtk_entry_get_text(GTK_ENTRY(name_entry)));
         gtk_widget_destroy(name_dialog);
     } else {
-        change_display_name("Anonymous"); //maybe get client id here
+        change_display_name(g_strdup_printf("Anonymous%d",client_id));
     }
 
     client_id = connect_to_server(&client_sock);
