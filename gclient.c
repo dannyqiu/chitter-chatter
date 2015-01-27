@@ -21,7 +21,7 @@ void cleanup() {
     remove_shared_memory();
 }
 
-int main() {
+int client() {
     signal(SIGINT, signal_handler);
     printf("Starting client...\n");
 

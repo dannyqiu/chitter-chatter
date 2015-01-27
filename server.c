@@ -1,11 +1,12 @@
 #include "server.h"
 #include "util.h"
-#include "constants.h"
 
 int listen_sock, cli_sock; // Server listen sock, New client sock
 
 struct client **client_list;
 int num_clients;
+struct channel **channel_list;
+int num_channels;
 
 static void signal_handler(int signo) {
     switch (signo) {
@@ -14,14 +15,28 @@ static void signal_handler(int signo) {
             close(listen_sock);
             cleanup();
             exit(0);
+        case SIGSEGV:
+            shutdown(listen_sock, SHUT_RDWR);
+            close(listen_sock);
+            exit(1);
     }
 }
 
 void cleanup() {
     for (; num_clients > 0; --num_clients) {
-        free(client_list[num_clients-1]);
+        struct client *cur_client = client_list[num_clients-1];
+        if (cur_client) {
+            free(cur_client);
+        }
     }
     free(client_list);
+    for (; num_channels > 0; --num_channels) {
+        struct channel *cur_channel = channel_list[num_channels-1];
+        if (cur_channel) {
+            free(cur_channel);
+        }
+    }
+    free(channel_list);
 }
 
 int add_client(int fd) {
@@ -34,23 +49,84 @@ int add_client(int fd) {
     struct client *new_client = (struct client *) malloc(sizeof(struct client));
     new_client->cli_sock = fd;
     new_client->cli_id = client_id;
-    new_client->channels = NULL;
+    new_client->num_channels = 0;
+    new_client->channels = (struct channel **) malloc(new_client->num_channels * sizeof(struct channel *));
     client_list[num_clients-1] = new_client;
     return client_id;
+}
+
+void remove_client(int fd) {
+    int i;
+    for (i=0; i<num_clients; ++i) {
+        struct client *cur_client = client_list[i];
+        if (cur_client) {
+            if (cur_client->cli_sock == fd) {
+                free(cur_client);
+                client_list[i] = NULL;
+            }
+        }
+    }
 }
 
 int is_client_id_taken(int client_id) {
     int i;
     for (i=0; i<num_clients; ++i) {
-        if (client_list[i]->cli_id == client_id) {
-            return 1;
+        struct client *cur_client = client_list[i];
+        if (cur_client) {
+            if (cur_client->cli_id == client_id) {
+                return 1;
+            }
         }
     }
     return 0;
 }
 
+int add_channel(char *channel_name) {
+    int channel_id = rand();
+    while (is_channel_id_taken(channel_id)) {
+        channel_id = rand();
+    }
+    ++num_channels;
+    channel_list = (struct channel **) realloc(channel_list, num_channels * sizeof(struct channel *));
+    struct channel *new_channel = (struct channel *) malloc(sizeof(struct channel));
+    new_channel->channel_id = channel_id;
+    strncpy(new_channel->channel_name, channel_name, CHANNEL_NAME_SIZE);
+    new_channel->num_clients = 0;
+    new_channel->cli_ids = (int *) malloc(num_clients * sizeof(int));
+    channel_list[num_channels-1] = new_channel;
+    return channel_id;
+}
+
+int is_channel_id_taken(int channel_id) {
+    int i;
+    for (i=0; i<num_channels; ++i) {
+        struct channel *cur_channel = channel_list[i];
+        if (cur_channel) {
+            if (cur_channel->channel_id == channel_id) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+void add_client_to_channel(int client_id, int channel_id) {
+    int i;
+    for (i=0; i<num_channels; ++i) {
+        struct channel *cur_channel = channel_list[i];
+        if (cur_channel) {
+            if (cur_channel->channel_id == channel_id) {
+                ++(cur_channel->num_clients);
+                cur_channel->cli_ids = (int *) realloc(cur_channel->cli_ids, cur_channel->num_clients * sizeof(int));
+                cur_channel->cli_ids[num_clients-1] = client_id;
+            }
+        }
+    }
+}
+
 int main() {
     signal(SIGINT, signal_handler);
+    signal(SIGSEGV, signal_handler);
     struct sockaddr_in serv_addr, cli_addr; // Server address, Client address
     socklen_t cli_len;                      // Client address length
     fd_set masterfds, readfds;              // FD sets for master, read
@@ -62,6 +138,8 @@ int main() {
     /* Initialize client list */
     num_clients = 0;
     client_list = (struct client **) malloc(num_clients * sizeof(struct client *));
+    num_channels = 0;
+    channel_list = (struct channel **) malloc(num_channels * sizeof(struct channel *));
 
     /* Create socket */
     listen_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -126,8 +204,8 @@ int main() {
                 else {
 
                     /* Handle data from connected clients */
-                    struct chat_packet package;
-                    int nbytes = recv(currentfd, &package, sizeof(package), 0);
+                    struct chat_packet initial_package;
+                    int nbytes = recv(currentfd, &initial_package, sizeof(struct chat_packet), 0);
                     if (nbytes <= 0) {
                         if (nbytes == 0) {
                             printf("Connection closed by %d\n", currentfd);
@@ -137,34 +215,32 @@ int main() {
                         }
                         close(currentfd);
                         FD_CLR(currentfd, &masterfds);
+                        remove_client(currentfd);
                     }
                     else {
-                        printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
-                        char *recv_message = (char *) malloc(package.total * MSG_SIZE * sizeof(char));
-                        strncpy(recv_message, package.message, MSG_SIZE);
-                        while (package.sequence < package.total) {
-                            recv(currentfd, &package, sizeof(package), 0);
-                            strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
-                            printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", currentfd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
-                        }
-                        printf("[COMBINED MESSAGE FROM %d]: %s\n", currentfd, recv_message);
-                        char *send_msg = recv_message; // Forward received data to all other clients. TODO: Implement channels
-                        int recipient;
-                        for (recipient=0; recipient<=fdmax; ++recipient) {
-                            if (FD_ISSET(recipient, &masterfds) && recipient != currentfd && recipient != listen_sock) {
-                                int num_packets = strlen(recv_message) / MSG_SIZE;
-                                int n;
-                                for (n=0; n<=num_packets; ++n) {
-                                    struct chat_packet package;
-                                    package.sequence = n;
-                                    package.total = num_packets;
-                                    package.type = TYPE_MESSAGE;
-                                    strncpy(package.message, send_msg + (n * MSG_SIZE), MSG_SIZE);
-                                    send(recipient, &package, sizeof(package), 0);
+                        if (initial_package.type == TYPE_MESSAGE) {
+                            char *recv_message = receive_message_from_client(currentfd, initial_package);
+                            char *send_msg = recv_message; // Forward received data to all other clients. TODO: Implement channels
+                            int recipient;
+                            for (recipient=0; recipient<=fdmax; ++recipient) {
+                                if (FD_ISSET(recipient, &masterfds) && recipient != currentfd && recipient != listen_sock) {
+                                    send_message_to_client(recipient, recv_message, strlen(recv_message), initial_package.client_id, initial_package.channel_id);
                                 }
                             }
+                            free(recv_message);
                         }
-                        free(recv_message);
+                        else if (initial_package.type == TYPE_JOIN_CHANNEL) {
+                            add_client_to_channel(initial_package.client_id, initial_package.channel_id);
+                            printf("Client %d has joined channel %d\n", initial_package.client_id, initial_package.channel_id);
+                            send(currentfd, &initial_package, sizeof(struct chat_packet), 0); // Server sends acknowledgement of join
+                        }
+                        else if (initial_package.type == TYPE_CREATE_CHANNEL) {
+                            int channel_id = add_channel(initial_package.message);
+                            add_client_to_channel(initial_package.client_id, channel_id);
+                            printf("Channel %s created with ID %d by Client %d\n", initial_package.message, channel_id, initial_package.client_id);
+                            initial_package.channel_id = channel_id;
+                            send(currentfd, &initial_package, sizeof(struct chat_packet), 0); // Server send channel id back
+                        }
                     }
 
                 }
@@ -173,4 +249,33 @@ int main() {
     } // WOW SUCH NESTING
 
     return 0;
+}
+
+// Output needs to be freed
+char * receive_message_from_client(int listen_fd, struct chat_packet package) {
+    printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", listen_fd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
+    char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
+    strncpy(recv_message, package.message, MSG_SIZE);
+    while (package.sequence < package.total) {
+        recv(listen_fd, &package, sizeof(struct chat_packet), 0);
+        strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
+        printf("[RECEIVED FROM SOCK %d - CLIENT %d - CHANNEL %d] (%d of %d) [TYPE %d]: %s\n", listen_fd, package.client_id, package.channel_id, package.sequence, package.total, package.type, package.message);
+    }
+    //printf("[COMBINED MESSAGE FROM %d]: %s\n", listen_fd, recv_message);
+    return recv_message;
+}
+
+void send_message_to_client(int sock_fd, char *message, size_t message_len, int client_id, int channel_id) {
+    int num_packets = message_len / MSG_SIZE;
+    int n;
+    for (n=0; n<=num_packets; ++n) {
+        struct chat_packet package;
+        package.sequence = n;
+        package.total = num_packets;
+        package.type = TYPE_MESSAGE;
+        package.client_id = client_id;
+        package.channel_id = channel_id;
+        strncpy(package.message, message + (n * MSG_SIZE), MSG_SIZE);
+        send(sock_fd, &package, sizeof(struct chat_packet), 0);
+    }
 }

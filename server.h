@@ -3,26 +3,36 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
-#define CHANNEL_NAME_SIZE 256
+#include "constants.h"
 
 struct channel {
-    int channel_id; // ID of the channel
-    char channel_name[CHANNEL_NAME_SIZE];
-    int *cli_ids;   // Array pointer to clients in channel
+    int channel_id;     // ID of the channel
+    char channel_name[CHANNEL_NAME_SIZE]; // Name of the channel
+    int num_clients;    // Counter for clients in channel
+    int *cli_ids;       // Array pointer to clients in channel
 };
 
 struct client {
     int cli_sock;               // FD for client
     int cli_id;                 // Unique ID for client
-    struct channel *channels;    // Array pointer to client channels
+    int num_channels;           // Counter for client channels
+    struct channel **channels;  // Array pointer to client channels
 };
 
 void cleanup();
 
 int add_client(int);
+void remove_client(int);
 int is_client_id_taken(int);
+
+int add_channel(char *);
+int is_channel_id_taken(int);
+void add_client_to_channel(int, int);
+
+char * receive_message_from_client(int, struct chat_packet);
+void send_message_to_client(int, char *, size_t, int, int);
