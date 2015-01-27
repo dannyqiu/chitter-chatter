@@ -7,6 +7,7 @@
         <property name="border-width">10</property>
         <signal name="delete-event" handler="on_delete_event"/>
         <signal name="destroy" handler="gtk_main_quit"/>
+        
         <child>
             <object id="channels" class="GtkListStore">
                 <columns>
@@ -23,6 +24,7 @@
                     </row>
                 </data>
             </object>
+            
             <object id="users" class="GtkListStore">
                 <columns>
                     <!-- column-name Users -->
@@ -144,17 +146,5 @@
                 </child>
             </object>
         </child>
-    </object>
-    <object class="GtkDialog" id="dialog1">
-        <child type="action">
-            <object class="GtkEntry" id="name"/>
-        </child>
-        <child type="action">
-            <object class="GtkButton" id="button_ok"/>
-        </child>
-        <action-widgets>
-            <action-widget response="name">name</action-widget>
-            <action-widget response="ok" default="true">button_ok</action-widget>
-        </action-widgets>
     </object>
 </interface>

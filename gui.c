@@ -118,20 +118,20 @@ int main (int argc, char *argv[]) {
     //Main Chat Program
     GtkBuilder *builder;
     GObject *chatlog;
+    GObject *window;
     GObject *chatbox;
     GObject *users;
     GObject *channels;
-    GObject *dialog;
     GtkTextBuffer *buffer;
        
     builder = gtk_builder_new();
     gtk_builder_add_from_file(builder , "layout.ui" , NULL); 
     buffer = gtk_text_buffer_new(NULL);
 
+    window = gtk_builder_get_object(builder, "window");
     chatlog = gtk_builder_get_object(builder, "chatlog");
     chatbox = gtk_builder_get_object(builder, "chatbox");
     channels = gtk_builder_get_object(builder, "channels");
-    dialog = gtk_builder_get_object(builder, "dialog1");
     users = gtk_builder_get_object(builder, "users");
      
     gtk_text_view_set_buffer(GTK_TEXT_VIEW(chatlog), buffer); 
@@ -145,7 +145,7 @@ int main (int argc, char *argv[]) {
     add_item_to_list((GtkListStore*)channels, (gchar*)"a channel");
     add_item_to_list((GtkListStore*)users, (gchar*)"admin");
     
-    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    //gint response = gtk_dialog_run(GTK_DIALOG(dialog));
     //Name Grabber
     /*
     GtkBuilder *dialog_builder;
@@ -157,37 +157,43 @@ int main (int argc, char *argv[]) {
     */
     //dialog = gtk_builder_get_object(dialog_builder, "dialog1");
     //gint response = gtk_dialog_run(GTK_DIALOG(dialog));
-    /*
+    
     GtkWidget *grid;
-    GtkWidget *dialog;
-    GtkWidget *name;
+    GtkWidget *name_dialog;
+    GtkWidget *name_entry;
+    GtkWidget *label;
+    GtkWidget *content_area;
 
-    grid = gtk_grid_new();
+    //grid = gtk_grid_new();
 
-    name = gtk_entry_new();
-    gtk_entry_set_visibility(GTK_ENTRY(name) , TRUE);
-    gtk_entry_set_max_length(GTK_ENTRY(name) , 20);
+    label = gtk_label_new("Enter your desired display name.");
 
-    gtk_grid_attach(GTK_GRID(grid),
-		    name,
-		    0,0,1,1);
+    name_entry = gtk_entry_new();
+    gtk_entry_set_visibility(GTK_ENTRY(name_entry) , TRUE);
+    gtk_entry_set_max_length(GTK_ENTRY(name_entry) , 20);
+
+    //gtk_grid_attach(GTK_GRID(grid), name, 0,0,1,1);
     
     GtkDialogFlags flags = GTK_DIALOG_MODAL;
     
-    dialog = gtk_dialog_new_with_buttons("Chitter-Chatter",
-					 GTK_WINDOW(window),
-					 flags,
-					 "Enter",
-					 GTK_RESPONSE_ACCEPT,
-					 NULL);
-    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    name_dialog = gtk_dialog_new_with_buttons("Chitter-Chatter", GTK_WINDOW(window),
+					 flags, "Submit", GTK_RESPONSE_ACCEPT, NULL);
+    //name_dialog = gtk_dialog_new();
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(name_dialog));
+    gtk_box_pack_start(GTK_BOX(content_area), label, TRUE, TRUE, 5); 
+    gtk_box_pack_start(GTK_BOX(content_area), name_entry, TRUE, TRUE, 5); 
+    
+    //gtk_dialog_add_button(GTK_DIALOG(name_dialog), "Enter", 1);
+    
+    gtk_window_set_transient_for(GTK_WINDOW(name_dialog),GTK_WINDOW(window));
 
-    gtk_dialog_add_action_widget(GTK_DIALOG(dialog), grid, 1);
-
+    gtk_widget_show_all(name_dialog);
+    gint response = gtk_dialog_run(GTK_DIALOG(name_dialog));
+    
     if(response == GTK_RESPONSE_ACCEPT){
-      gtk_widget_destroy(dialog);
+      gtk_widget_destroy(name_dialog);
     }
-    */
+    
     gtk_main ();
 
     return 0;
