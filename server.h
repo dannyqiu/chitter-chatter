@@ -35,6 +35,7 @@ int is_client_id_taken(int);
 int add_channel(char *);
 int is_channel_id_taken(int);
 void add_client_to_channel(int, int);
+char * build_channels_list_for_client();
 
 char * receive_message_from_client(int, struct chat_packet);
 void send_message_to_client(int, int, char *, int, int);

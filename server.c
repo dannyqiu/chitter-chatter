@@ -240,21 +240,17 @@ int main() {
                             printf("Channel %s created with ID %d by Client %d\n", initial_package.message, channel_id, initial_package.client_id);
                             initial_package.channel_id = channel_id;
                             send(currentfd, &initial_package, sizeof(struct chat_packet), 0); // Server sends channel id back
+                            char *channels_string = build_channels_list_for_client();
+                            int recipient;
+                            for (recipient=0; recipient<=fdmax; ++recipient) {
+                                if (FD_ISSET(recipient, &masterfds) && recipient != listen_sock) {
+                                    send_message_to_client(recipient, TYPE_GET_CHANNELS, channels_string, 0, 0); // Server updates all others clients with channel listing
+                                }
+                            }
+                            free(channels_string);
                         }
                         else if (initial_package.type == TYPE_GET_CHANNELS) {
-                            char buffer[16]; // Enough to hold ascii int + ','
-                            int channels_string_len = 0;
-                            int channels_string_len_max = CHANNEL_STRING_LEN_INCREMENT;
-                            char *channels_string = (char *) malloc(channels_string_len_max);
-                            int i;
-                            for (i=0; i<num_channels; ++i) {
-                                snprintf(buffer, sizeof(buffer), "%d,", channel_list[i]->channel_id);
-                                if (channels_string_len + strlen(buffer) >= channels_string_len_max) {
-                                    channels_string = (char *) realloc(channels_string, (channels_string_len_max + CHANNEL_STRING_LEN_INCREMENT) * sizeof(char));
-                                }
-                                strncpy(channels_string + channels_string_len, buffer, strlen(buffer));
-                                channels_string_len += strlen(buffer);
-                            }
+                            char *channels_string = build_channels_list_for_client();
                             send_message_to_client(currentfd, TYPE_GET_CHANNELS, channels_string, 0, 0);
                             free(channels_string);
                         }
@@ -295,4 +291,21 @@ void send_message_to_client(int sock_fd, int type, char *message, int client_id,
         strncpy(package.message, message + (n * MSG_SIZE), MSG_SIZE);
         send(sock_fd, &package, sizeof(struct chat_packet), 0);
     }
+}
+
+char * build_channels_list_for_client() {
+    char buffer[16]; // Enough to hold ascii int + ','
+    int channels_string_len = 0;
+    int channels_string_len_max = CHANNEL_STRING_LEN_INCREMENT;
+    char *channels_string = (char *) malloc(channels_string_len_max);
+    int i;
+    for (i=0; i<num_channels; ++i) {
+        snprintf(buffer, sizeof(buffer), "%d,", channel_list[i]->channel_id);
+        if (channels_string_len + strlen(buffer) >= channels_string_len_max) {
+            channels_string = (char *) realloc(channels_string, (channels_string_len_max + CHANNEL_STRING_LEN_INCREMENT) * sizeof(char));
+        }
+        strncpy(channels_string + channels_string_len, buffer, strlen(buffer));
+        channels_string_len += strlen(buffer);
+    }
+    return channels_string;
 }
