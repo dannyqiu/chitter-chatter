@@ -129,7 +129,7 @@ void add_client_to_channel(int client_id, int channel_id) {
     if (cur_channel) {
         ++(cur_channel->num_clients);
         cur_channel->cli_ids = (int *) realloc(cur_channel->cli_ids, cur_channel->num_clients * sizeof(int));
-        cur_channel->cli_ids[num_clients-1] = client_id;
+        cur_channel->cli_ids[cur_channel->num_clients-1] = client_id;
     }
     else {
         print_error("Attempted to add client to invalid channel");
@@ -266,12 +266,13 @@ int main() {
                     else {
                         if (initial_package.type == TYPE_MESSAGE) {
                             char *recv_message = receive_message_from_client(currentfd, initial_package);
-                            char *send_msg = recv_message; // Forward received data to all other clients. TODO: Implement channels
+                            char *send_msg = recv_message; // Forward received data to all other clients in channel
                             int recipient;
                             for (recipient=0; recipient<=fdmax; ++recipient) {
                                 if (FD_ISSET(recipient, &masterfds) && recipient != currentfd && recipient != listen_sock) {
                                     struct client *cur_client = get_client_by_sock(recipient);
                                     if (is_client_in_channel(cur_client->cli_id, initial_package.channel_id)) { // Only send message to clients that are part of the channel
+                                        printf("Sending message to %d\n", cur_client->cli_id);
                                         send_message_to_client(recipient, TYPE_MESSAGE, recv_message, initial_package.client_id, initial_package.channel_id);
                                     }
                                 }
