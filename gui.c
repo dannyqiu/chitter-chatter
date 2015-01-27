@@ -46,25 +46,9 @@ void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message) {
     gtk_text_buffer_insert(chat_buffer, &chat_end, message, -1);
 }
 
-GtkTextBuffer* get_chat_log(GtkEntry *chatbox){
-    GtkTextView *chatlog;
-    GtkTextBuffer *chat_buffer;
-    GtkWidget *grid;
-    GtkBin *scroll;
-
-    //get textview + buffer
-    grid = gtk_widget_get_parent((GtkWidget*)chatbox);
-    //g_print("Got grid...\n");  
-   
-    scroll = (GtkBin*)gtk_grid_get_child_at((GtkGrid*)grid,1,0);
-    chatlog = (GtkTextView*)gtk_bin_get_child(scroll);
-    //g_print("Got Textview\n");
-    
-    //chatlog = find_child(window,"chatlog");
-    chat_buffer = gtk_text_view_get_buffer(chatlog); 
-    //g_print("Got buffer\n");
-   
-    return chat_buffer;
+void change_display_name(const gchar *name){
+    // TODO: Button to do this?
+    g_strlcpy(display_name, name, DISPLAY_NAME_SIZE);
 }
 
 void on_create_channel_clicked(GtkWidget *widget, gpointer data){
@@ -72,11 +56,6 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
     gchar *channel_name = g_strdup_printf("> Channel by %d <", client_id);
     send_create_channel_to_server(client_sock, client_id, channel_name);
     g_free(channel_name);
-}
-
-void change_display_name(const gchar *name){
-    // TODO: Button to do this?
-    g_strlcpy(display_name, name, DISPLAY_NAME_SIZE);
 }
 
 void on_channel_selection_changed(GtkWidget *widget, gpointer data){
@@ -106,12 +85,12 @@ gboolean key_event(GtkWidget *widget, GdkEventKey *event){
     GtkEntry *chatbox = (GtkEntry*)widget;
     gchar *input = (gchar *)gtk_entry_get_text(chatbox);
     if (strcmp(gdk_keyval_name(event->keyval), "Return") == 0 && strcmp(input, "") != 0){
-        GtkTextBuffer *chat_buffer = get_chat_log(chatbox);
+        GtkTextBuffer *chat_buffer = gtk_text_view_get_buffer((GtkTextView *) chatlog);
         gchar *message = construct_message(display_name, input);
         append_to_chat_log(chat_buffer, message);
         send_message_to_server(client_sock, client_id, current_channel_id, message);
         g_free(message);
-        gtk_entry_set_text(chatbox, "");//Resets the entry
+        gtk_entry_set_text(chatbox, ""); //Resets the entry
     }
     return TRUE;
 }
