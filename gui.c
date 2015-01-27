@@ -45,6 +45,9 @@ void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message) {
 
 void change_display_name(const gchar *name){
     // TODO: Button to do this?
+    if(strcmp(name, "")==0){
+        name = g_strdup_printf("Anonymous%d",client_id);
+    }
     g_strlcpy(display_name, name, DISPLAY_NAME_SIZE);
 }
 
