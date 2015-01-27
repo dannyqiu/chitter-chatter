@@ -11,6 +11,12 @@ GObject *users;
 GObject *channels;
 GtkTextBuffer *buffer;
 gchar display_name[DISPLAY_NAME_SIZE];
+//Popup Dialog
+GtkWidget *grid;
+GtkWidget *name_dialog;
+GtkWidget *name_entry;
+GtkWidget *label;
+GtkWidget *content_area;
 
 int client_id;
 int client_sock;
@@ -154,13 +160,8 @@ int main (int argc, char *argv[]) {
 
     add_item_to_list((GtkListStore*)channels, (gchar*)"a channel");
     add_item_to_list((GtkListStore*)users, (gchar*)"admin");
-    
-    GtkWidget *grid;
-    GtkWidget *name_dialog;
-    GtkWidget *name_entry;
-    GtkWidget *label;
-    GtkWidget *content_area;
-
+   
+    //Popup Window Code here
     label = gtk_label_new("Enter your desired display name.");
 
     name_entry = gtk_entry_new();
