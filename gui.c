@@ -36,18 +36,11 @@ gchar * construct_message(gchar *display_name, gchar *message) {
 
 void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message) {
     GtkTextIter chat_end;
-    GtkTextMark *mark;
-    mark = gtk_text_mark_new(NULL,FALSE);
-    gtk_text_mark_set_visible(mark,TRUE);
     gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
     
     //insert message to chatlog
     //g_print("Append: %s\n",message);
-    gtk_text_buffer_add_mark(chat_buffer, mark, &chat_end);
-    //gtk_text_view_scroll_mark_onscreen((GtkTextView *)chatlog, mark);
-    //gtk_text_view_scroll_to_iter((GtkTextView *)(chatlog), &chat_end, 0.0, TRUE,0.0,1.0);
     gtk_text_buffer_insert(chat_buffer, &chat_end, message, -1);
-    				
 }
 
 void change_display_name(const gchar *name){
@@ -59,7 +52,7 @@ void change_display_name(const gchar *name){
 }
 
 void on_create_channel_clicked(GtkWidget *widget, gpointer data){
-    gchar channel_name[CHANNEL_NAME_SIZE];
+    gchar channel_name[1024];
     GtkWidget *grid;
     GtkWidget *dialog;
     GtkWidget *entry;
@@ -85,7 +78,7 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
     gint response = gtk_dialog_run(GTK_DIALOG(dialog));
     
     if(response == GTK_RESPONSE_ACCEPT){
-        g_strlcpy(channel_name, gtk_entry_get_text(GTK_ENTRY(entry)),CHANNEL_NAME_SIZE);
+        g_strlcpy(channel_name, gtk_entry_get_text(GTK_ENTRY(entry)),1024);
         printf("Got channel name: %s\n",channel_name);
         gtk_widget_destroy(dialog);
     } else {
@@ -98,7 +91,7 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
 
 gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
     GtkTreeIter iter;
-    gchar *channel_name = (gchar*)malloc(CHANNEL_NAME_SIZE*sizeof(gchar));
+    gchar *channel_name = (gchar*)malloc(1024*sizeof(gchar));
     
     gtk_tree_selection_get_selected(selection, &list, &iter);
     gtk_tree_model_get(list, &iter, 0, &channel_name, -1);
