@@ -139,6 +139,14 @@ void send_create_channel_to_server(int sock_fd, int client_id, char *channel_nam
     send(sock_fd, &package, sizeof(struct chat_packet), 0);
 }
 
+void send_get_channels_to_server(int sock_fd) {
+    struct chat_packet package;
+    package.sequence = 0;
+    package.total = 0;
+    package.type = TYPE_GET_CHANNELS;
+    send(sock_fd, &package, sizeof(struct chat_packet), 0);
+}
+
 // Output needs to be freed
 int * get_channels() {
     if (access(PROFILE_FOLDER, F_OK) < 0) { // Folder does not exist

@@ -31,13 +31,14 @@
                     <column type="gchararray"/>
                 </columns>
                 <data>
-                    <!-- Placeholder data for testing purposes -->
+                    <!-- Placeholder data for testing purposes
                     <row>
                         <col id="0">Class 301</col>
                     </row>
                     <row>
                         <col id="0">Class 302</col>
                     </row>
+                    -->
                 </data>
             </object>
             <object id="grid" class="GtkGrid">
@@ -66,7 +67,7 @@
                                 <property name="model">channels</property>
                                 <child>
                                     <object id="channelcol" class="GtkTreeViewColumn">
-                                        <property name="title">Open Channels</property>
+                                        <property name="title">Your Channels</property>
                                         <property name="expand">True</property>
                                         <child>
                                             <object id="channel-renderer" class="GtkCellRendererText"/>
@@ -123,7 +124,7 @@
                     </packing>
                 </child>
                 <child>
-                    <object id="userchannelwindow" class="GtkScrolledWindow">
+                    <object id="userchannel" class="GtkScrolledWindow">
                         <property name="visible">True</property>
                         <property name="expand">True</property>
                         <child>
@@ -132,7 +133,7 @@
                                 <property name="model">userchannels</property>
                                 <child>
                                     <object id="userchannelcol" class="GtkTreeViewColumn">
-                                        <property name="title">Your Channels</property>
+                                        <property name="title">Available Channels</property>
                                         <property name="expand">True</property>
                                         <child>
                                             <object id="userchannel-renderer" class="GtkCellRendererText"/>

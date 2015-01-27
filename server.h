@@ -10,6 +10,8 @@
 #include <arpa/inet.h>
 #include "constants.h"
 
+#define CHANNEL_STRING_LEN_INCREMENT 256
+
 struct channel {
     int channel_id;     // ID of the channel
     char channel_name[CHANNEL_NAME_SIZE]; // Name of the channel
@@ -35,4 +37,4 @@ int is_channel_id_taken(int);
 void add_client_to_channel(int, int);
 
 char * receive_message_from_client(int, struct chat_packet);
-void send_message_to_client(int, char *, size_t, int, int);
+void send_message_to_client(int, int, char *, int, int);

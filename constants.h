@@ -13,6 +13,7 @@ static const char *PROFILE_FOLDER = "profile";
 #define TYPE_MESSAGE 0
 #define TYPE_JOIN_CHANNEL 1
 #define TYPE_CREATE_CHANNEL 2
+#define TYPE_GET_CHANNELS 3
 
 struct chat_packet {
     int sequence;           // Packet number in sequence
