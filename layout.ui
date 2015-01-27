@@ -25,18 +25,18 @@
                 </data>
             </object>
             
-            <object id="users" class="GtkListStore">
+            <object id="userchannels" class="GtkListStore">
                 <columns>
-                    <!-- column-name Users -->
+                    <!-- column-name User Channels -->
                     <column type="gchararray"/>
                 </columns>
                 <data>
                     <!-- Placeholder data for testing purposes -->
                     <row>
-                        <col id="0">bob</col>
+                        <col id="0">stuycs</col>
                     </row>
                     <row>
-                        <col id="0">alison</col>
+                        <col id="0">a channel</col>
                     </row>
                 </data>
             </object>
@@ -49,6 +49,7 @@
                     <object id="createchannel" class="GtkButton">
                         <property name="visible">True</property>
                         <property name="label">Create Channel</property>
+                        <signal name="clicked" handler="on_create_channel_clicked"/>
                     </object>
                     <packing>
                         <property name="left-attach">0</property>
@@ -122,19 +123,19 @@
                     </packing>
                 </child>
                 <child>
-                    <object id="userwindow" class="GtkScrolledWindow">
+                    <object id="userchannelwindow" class="GtkScrolledWindow">
                         <property name="visible">True</property>
                         <property name="expand">True</property>
                         <child>
-                            <object id="usertree" class="GtkTreeView">
+                            <object id="userchanneltree" class="GtkTreeView">
                                 <property name="visible">True</property>
-                                <property name="model">users</property>
+                                <property name="model">userchannels</property>
                                 <child>
-                                    <object id="usercol" class="GtkTreeViewColumn">
-                                        <property name="title">Joined Channels</property>
+                                    <object id="userchannelcol" class="GtkTreeViewColumn">
+                                        <property name="title">Your Channels</property>
                                         <property name="expand">True</property>
                                         <child>
-                                            <object id="user-renderer" class="GtkCellRendererText"/>
+                                            <object id="userchannel-renderer" class="GtkCellRendererText"/>
                                             <attributes>
                                                 <attribute name="text">0</attribute>
                                             </attributes>
@@ -142,8 +143,8 @@
                                     </object>  
                                 </child>
                                 <child internal-child="selection">
-                                    <object id="userselection" class="GtkTreeSelection">
-                                        <signal name="changed" handler="on_user_selection_changed"/>
+                                    <object id="userchannelselection" class="GtkTreeSelection">
+                                        <signal name="changed" handler="on_user_channel_selection_changed"/>
                                     </object>
                                 </child>
                             </object>

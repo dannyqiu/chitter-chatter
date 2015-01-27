@@ -53,9 +53,6 @@ GtkTextBuffer* get_chat_log(GtkEntry *chatbox){
 
     //get textview + buffer
     grid = gtk_widget_get_parent((GtkWidget*)chatbox);
-    if(!GTK_IS_CONTAINER(grid)){
-        g_print("Grid is not a container\n");
-    }
     //g_print("Got grid...\n");  
    
     scroll = (GtkBin*)gtk_grid_get_child_at((GtkGrid*)grid,1,0);
@@ -69,16 +66,20 @@ GtkTextBuffer* get_chat_log(GtkEntry *chatbox){
     return chat_buffer;
 }
 
+void on_create_channel_clicked(GtkWidget *widget, gpointer data){
+    g_print("Create channel.\n"); 
+}
+
 void change_display_name(const gchar *name){
     g_strlcpy(display_name, name, DISPLAY_NAME_SIZE);
 }
 
 void on_channel_selection_changed(GtkWidget *widget, gpointer data){
-    g_print("Changed channel!\n");
+    g_print("Selected available channel.\n");
 }
 
-void on_user_selection_changed(GtkWidget *widget, gpointer data){
-    g_print("Changed user!\n");
+void on_user_channel_selection_changed(GtkWidget *widget, gpointer data){
+    g_print("Changed user's channel!\n");
 }
 
 void add_item_to_list(GtkListStore *list, gchar *item_name){
@@ -185,6 +186,8 @@ int main (int argc, char *argv[]) {
     if(response == GTK_RESPONSE_ACCEPT){
         change_display_name(gtk_entry_get_text(GTK_ENTRY(name_entry)));
         gtk_widget_destroy(name_dialog);
+    } else {
+        change_display_name("Anonymous"); //maybe get client id here
     }
 
     client_id = connect_to_server(&client_sock);
