@@ -15,13 +15,13 @@
                     <column type="gchararray"/>
                 </columns>
                 <data>
-                    <!-- Placeholder data for testing purposes -->
+                    <!-- Placeholder data for testing purposes
                     <row>
                         <col id="0">awesomeness</col>
                     </row>
                     <row>
                         <col id="0">stuycs</col>
-                    </row>
+                    </row> -->
                 </data>
             </object>
             
@@ -31,13 +31,13 @@
                     <column type="gchararray"/>
                 </columns>
                 <data>
-                    <!-- Placeholder data for testing purposes -->
+                    <!-- Placeholder data for testing purposes
                     <row>
                         <col id="0">Class 301</col>
                     </row>
                     <row>
                         <col id="0">Class 302</col>
-                    </row>
+                    </row> -->
                 </data>
             </object>
             <object id="grid" class="GtkGrid">

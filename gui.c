@@ -12,8 +12,8 @@ GObject *userchanneltree;
 GObject *userchannels;
 GObject *channels;
 GtkTextBuffer *chat_buffer;
-gchar display_name[DISPLAY_NAME_SIZE];
 
+gchar display_name[DISPLAY_NAME_SIZE];
 int client_id;
 int client_sock;
 GIOChannel *client_gchannel;
@@ -137,18 +137,16 @@ void on_user_channel_selection_changed(GtkWidget *selection, gpointer data){
     }
 }
 
-void add_item_to_list(GtkListStore *list, gchar *item_name){
+void add_item_to_list(GtkListStore *list, gchar *item_name) {
     GValue name = G_VALUE_INIT;
     g_value_init(&name, G_TYPE_STRING);
     g_value_set_static_string(&name, item_name);
 
     GtkTreeIter iter;
 
-    g_print("Appending...\n");
     gtk_list_store_append(list, &iter);
-    g_print("Appended\n");
     gtk_list_store_set_value(list, &iter, 0, &name); 
-    g_print("Added value to list.\n");
+    g_print("Added value %s to list.\n", item_name);
 }
 
 gboolean key_event(GtkWidget *widget, GdkEventKey *event){
@@ -253,6 +251,7 @@ int main (int argc, char *argv[]) {
 
     client_id = connect_to_server(&client_sock);
     client_gchannel = g_io_channel_unix_new(client_sock);
+    send_get_channels_to_server(client_sock); // Get initial listing of channels
 
     g_io_add_watch(client_gchannel, G_IO_IN, (GIOFunc) receive_data_from_server, NULL);
 
@@ -291,12 +290,36 @@ gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gp
             current_channel_id = package.channel_id;
             add_channel(package.channel_id);
             g_print("Joined channel %d\n", package.channel_id);
+            gchar gchannel_id[16];
+            snprintf(gchannel_id, sizeof(gchannel_id), "%d", package.channel_id);
+            add_item_to_list((GtkListStore *) userchannels, gchannel_id);
         }
         else if (package.type == TYPE_CREATE_CHANNEL) {
             //send_join_channel_to_server(client_sock, package.channel_id); // This line is not required because creator automatically joins channel
             current_channel_id = package.channel_id;
             add_channel(package.channel_id);
             g_print("Created and changed to channel %d\n", package.channel_id);
+            gchar gchannel_id[16];
+            snprintf(gchannel_id, sizeof(gchannel_id), "%d", package.channel_id);
+            add_item_to_list((GtkListStore*) userchannels, gchannel_id);
+        }
+        else if (package.type == TYPE_GET_CHANNELS) {
+            char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
+            strncpy(recv_message, package.message, MSG_SIZE);
+            while (package.sequence < package.total) {
+                recv(client_sock, &package, sizeof(struct chat_packet), 0);
+                strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
+            }
+            g_print("Channel List: %s\n", recv_message);
+            gtk_list_store_clear((GtkListStore *) channels);
+            gchar *token, *current_pos;
+            current_pos = recv_message;
+            while ((token = strsep(&current_pos, ",")) != NULL) {
+                if (strcmp(token, "") != 0) {
+                    add_item_to_list((GtkListStore *) channels, token);
+                }
+            }
+            free(recv_message);
         }
     }
     return TRUE;
