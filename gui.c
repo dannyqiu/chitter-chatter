@@ -88,8 +88,7 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
 gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
     GtkTreeIter iter;
     gchar *channel_name = (gchar*)malloc(1024*sizeof(gchar));
-    channel_name = 0;
-
+    
     gtk_tree_selection_get_selected(selection, &list, &iter);
     gtk_tree_model_get(list, &iter, 0, &channel_name, -1);
 
@@ -99,9 +98,11 @@ gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
 
 void on_channel_selection_changed(GtkWidget *selection, gpointer data){
     gchar * selected_channel = get_selected_channel(GTK_TREE_MODEL(channels), GTK_TREE_SELECTION(selection));
-
+    if(selected_channel == NULL){
+        g_print("NULL!!\n");
+    }
     int selected_channel_id = atoi(selected_channel);
-    //free(selected_channel);
+    free(selected_channel);
 
     //TODO: Account for joining channels the client already is in
     if(selected_channel_id != current_channel_id){
@@ -118,6 +119,7 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
             case GTK_RESPONSE_YES:
                 send_join_channel_to_server(client_sock,client_id,selected_channel_id); 
                 current_channel_id = selected_channel_id;
+                
                 gtk_widget_destroy(dialog);
                 g_print("Joined available channel.\n");
                 break;
@@ -327,6 +329,10 @@ gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gp
                 strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
             }
             g_print("Channel List: %s\n", recv_message);
+            
+            GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(channeltree));
+            gtk_tree_selection_unselect_all(selection);
+            
             gtk_list_store_clear((GtkListStore *) channels);
             gchar *token, *current_pos;
             current_pos = recv_message;
