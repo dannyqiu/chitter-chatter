@@ -68,10 +68,14 @@ GtkTextBuffer* get_chat_log(GtkEntry *chatbox){
 }
 
 void on_create_channel_clicked(GtkWidget *widget, gpointer data){
-    g_print("Create channel.\n"); 
+    // TODO: Allow client to specify name of the channel
+    gchar *channel_name = g_strdup_printf("> Channel by %d <", client_id);
+    send_create_channel_to_server(client_sock, client_id, channel_name);
+    g_free(channel_name);
 }
 
 void change_display_name(const gchar *name){
+    // TODO: Button to do this?
     g_strlcpy(display_name, name, DISPLAY_NAME_SIZE);
 }
 
@@ -207,7 +211,7 @@ gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gp
     int nbytes = recv(client_sock, &package, sizeof(struct chat_packet), 0);
     if (nbytes <= 0) {
         if (nbytes == 0) {
-            printf("Connection closed by the server :(\n");
+            print_error("Connection closed by the server :(");
         }
         else {
             print_error("Problem receiving data from the server");
