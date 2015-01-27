@@ -21,6 +21,7 @@ GtkWidget *content_area;
 int client_id;
 int client_sock;
 GIOChannel *client_gchannel;
+int current_channel_id;
 
 void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
     GtkTextIter chat_end;
@@ -193,11 +194,6 @@ int main (int argc, char *argv[]) {
     g_io_add_watch(client_gchannel, G_IO_IN, (GIOFunc) receive_data_from_server, NULL);
     g_io_add_watch(client_gchannel, G_IO_HUP, (GIOFunc) close_connection_from_server, NULL);
 
-    /* Initialize shared memory to hold client current channel */
-    if (init_shared_memory() < 0) {
-        print_error("Problem creating shared memory");
-    }
-
     gtk_main ();
 
     return 0;
@@ -220,13 +216,13 @@ gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gp
         free(recv_message);
     }
     else if (package.type == TYPE_JOIN_CHANNEL) {
-        change_current_channel(package.channel_id);
+        current_channel_id = package.channel_id;
         add_channel(package.channel_id);
         g_print("Joined channel %d\n", package.channel_id);
     }
     else if (package.type == TYPE_CREATE_CHANNEL) {
         //send_join_channel_to_server(client_sock, package.channel_id); // This line is not required because creator automatically joins channel
-        change_current_channel(package.channel_id);
+        current_channel_id = package.channel_id;
         add_channel(package.channel_id);
         g_print("Created and changed to channel %d\n", package.channel_id);
     }

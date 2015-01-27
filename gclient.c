@@ -3,6 +3,7 @@
 
 int sock_fd; // Client sock to communicate with server
 int client_id; // ID of client assigned by server
+int channel_id;
 
 static void signal_handler(int signo) {
     switch (signo) {
@@ -18,7 +19,6 @@ static void signal_handler(int signo) {
 }
 
 void cleanup() {
-    remove_shared_memory();
 }
 
 int client() {
@@ -26,10 +26,6 @@ int client() {
     printf("Starting client...\n");
 
     client_id = connect_to_server(&sock_fd);
-
-    if (init_shared_memory() < 0) {
-        print_error("Problem creating shared memory");
-    }
 
     int child_pid = fork();
     if (child_pid) { // Parent handles sending
@@ -70,27 +66,6 @@ int client() {
                 exit(1);
             }
             else {
-                if (package.type == TYPE_MESSAGE) {
-                    char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
-                    strncpy(recv_message, package.message, MSG_SIZE);
-                    while (package.sequence < package.total) {
-                        recv(sock_fd, &package, sizeof(struct chat_packet), 0);
-                        strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
-                    }
-                    printf("\nReceived: %s\n", recv_message);
-                    free(recv_message);
-                }
-                else if (package.type == TYPE_JOIN_CHANNEL) {
-                    change_current_channel(package.channel_id);
-                    add_channel(package.channel_id);
-                    printf("Joined channel %d\n", package.channel_id);
-                }
-                else if (package.type == TYPE_CREATE_CHANNEL) {
-                    send_join_channel_to_server(sock_fd, package.channel_id); // This line is not required because creator automatically joins channel
-                    change_current_channel(package.channel_id);
-                    add_channel(package.channel_id);
-                    printf("Created and changed to channel %d\n", package.channel_id);
-                }
             }
         }
         cleanup();
@@ -164,21 +139,6 @@ void send_create_channel_to_server(int sock_fd, char *channel_name) {
     send(sock_fd, &package, sizeof(struct chat_packet), 0);
 }
 
-int get_current_channel() {
-    int current_channel = *(get_shared_memory());
-    release_shared_memory();
-    return current_channel;
-}
-
-void change_current_channel(int new_channel) {
-    int *shm = get_shared_memory();
-    if (shm == (void *) -1) {
-        print_error("Problem accessing shared memory to change current channel");
-    }
-    *shm = new_channel;
-    release_shared_memory();
-}
-
 // Output needs to be freed
 int * get_channels() {
     if (access(PROFILE_FOLDER, F_OK) < 0) { // Folder does not exist
@@ -223,92 +183,4 @@ void add_channel(int channel_id) {
         print_error("Problem with writing to profile file");
     }
     close(profilefd);
-}
-
-int init_shared_memory() {
-    key_t shmkey = ftok(SHM_KEY_FILE, KEY_ID);
-    if (shmkey == -1) {
-        return -1;
-    }
-    key_t semkey = ftok(SEM_KEY_FILE, KEY_ID);
-    if (shmkey == -1) {
-        return -1;
-    }
-    int shmid = shmget(shmkey, sizeof(int), IPC_CREAT | IPC_EXCL | 0666);
-    if (shmid == -1) {
-        return -1;
-    }
-    int *shm = shmat(shmid, 0, 0);
-    if (shm == (void *) -1) {
-        return -1;
-    }
-    memset(shm, 0, sizeof(int)); // Zero the shared memory
-    int semid = semget(semkey, 1, IPC_CREAT | IPC_EXCL | 0666);
-    if (semid == -1) {
-        return -1;
-    }
-    union semun su;
-    su.val = 1;
-    if (semctl(semid, 0, SETVAL, su) == -1) {
-        return -1;
-    }
-    return 0;
-}
-
-int remove_shared_memory() {
-    key_t shmkey = ftok(SHM_KEY_FILE, KEY_ID);
-    key_t semkey = ftok(SEM_KEY_FILE, KEY_ID);
-    int shmid = shmget(shmkey, sizeof(int), 0);
-    if (shmid != -1) { // Test for shared memory existence
-        if (shmctl(shmid, IPC_RMID, 0) == -1) {
-            return 1;
-        }
-    }
-    int semid = semget(semkey, 1, 0);
-    if (semid != -1) { // Test for semaphore existence
-        if (semctl(semid, 0, IPC_RMID) == -1) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-int * get_shared_memory() {
-    key_t shmkey = ftok(SHM_KEY_FILE, KEY_ID);
-    int shmid = shmget(shmkey, sizeof(int), 0);
-    if (shmid == -1) {
-        return (void *) -1;
-    }
-    int *shm = shmat(shmid, 0, 0);
-    if (shm == (void *) -1) {
-        return (void *) -1;
-    }
-    key_t semkey = ftok(SEM_KEY_FILE, KEY_ID);
-    int semid = semget(semkey, 1, 0);
-    if (semid == -1) {
-        return (void *) -1;
-    }
-    if (semctl(semid, 0, GETVAL) <= 0) {
-        printf("Waiting for the semamphore to be released...\n");
-    }
-    struct sembuf sb;
-    sb.sem_num = 0;
-    sb.sem_op = -1;
-    sb.sem_flg = SEM_UNDO;
-    semop(semid, &sb, 1);
-    return shm;
-}
-
-int release_shared_memory() {
-    key_t semkey = ftok(SEM_KEY_FILE, KEY_ID);
-    int semid = semget(semkey, 1, 0);
-    if (semid == -1) {
-        return -1;
-    }
-    struct sembuf sb;
-    sb.sem_num = 0;
-    sb.sem_op = 1;
-    sb.sem_flg = SEM_UNDO;
-    semop(semid, &sb, 1);
-    return 0;
 }
