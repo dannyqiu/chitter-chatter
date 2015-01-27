@@ -12,3 +12,6 @@ gboolean key_event(GtkWidget *widget, GdkEventKey *event);
 gboolean on_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data);
  
 void chat_room();
+
+gboolean receive_data_from_server(GIOChannel *, GIOCondition, gpointer);
+gboolean close_connection_from_server(GIOChannel *, GIOCondition, gpointer);

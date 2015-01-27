@@ -4,6 +4,7 @@
 
 int client_id;
 int client_sock;
+GIOChannel *client_gchannel;
 
 void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
     GtkTextIter chat_end;
@@ -25,8 +26,6 @@ void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
     //insert message to chatlog
     //g_print("Append: %s\n",message);
     gtk_text_buffer_insert(chat_buffer,&chat_end,display_message,-1);
-
-    send_message_to_server(client_sock, message, strlen(message));
 
     g_free(display_message);
 }
@@ -84,6 +83,7 @@ gboolean key_event(GtkWidget *widget, GdkEventKey *event){
     if(strcmp(gdk_keyval_name(event->keyval),"Return")==0 && strcmp(input, "") != 0){
         GtkTextBuffer * chat_buffer = get_chat_log(chatbox);
         append_to_chat_log(chat_buffer, input);
+        send_message_to_server(client_sock, input, strlen(input));
         gtk_entry_set_text(chatbox,"");//Resets the entry
     }
     return TRUE;
@@ -178,6 +178,10 @@ int main (int argc, char *argv[]) {
     //dialog = gtk_dialog_with_new_buttons("Chitter-Chatter",
 
     client_id = connect_to_server(&client_sock);
+    client_gchannel = g_io_channel_unix_new(client_sock);
+
+    g_io_add_watch(client_gchannel, G_IO_IN, (GIOFunc) receive_data_from_server, NULL);
+    g_io_add_watch(client_gchannel, G_IO_HUP, (GIOFunc) close_connection_from_server, NULL);
 
     /* Initialize shared memory to hold client current channel */
     if (init_shared_memory() < 0) {
@@ -187,4 +191,36 @@ int main (int argc, char *argv[]) {
     gtk_main ();
 
     return 0;
+}
+
+gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gpointer data) {
+    int client_sock = g_io_channel_unix_get_fd(source);
+    struct chat_packet package;
+    recv(client_sock, &package, sizeof(struct chat_packet), 0);
+    if (package.type == TYPE_MESSAGE) {
+        char *recv_message = (char *) malloc((package.total+1) * MSG_SIZE * sizeof(char));
+        strncpy(recv_message, package.message, MSG_SIZE);
+        while (package.sequence < package.total) {
+            recv(client_sock, &package, sizeof(struct chat_packet), 0);
+            strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
+        }
+        g_print("\nReceived: %s\n", recv_message);
+        free(recv_message);
+    }
+    else if (package.type == TYPE_JOIN_CHANNEL) {
+        change_current_channel(package.channel_id);
+        add_channel(package.channel_id);
+        g_print("Joined channel %d\n", package.channel_id);
+    }
+    else if (package.type == TYPE_CREATE_CHANNEL) {
+        //send_join_channel_to_server(client_sock, package.channel_id); // This line is not required because creator automatically joins channel
+        change_current_channel(package.channel_id);
+        add_channel(package.channel_id);
+        g_print("Created and changed to channel %d\n", package.channel_id);
+    }
+    return TRUE;
+}
+
+gboolean close_connection_from_server(GIOChannel *source, GIOCondition condition, gpointer data) {
+    return FALSE;
 }
