@@ -241,6 +241,7 @@ int main() {
                             initial_package.channel_id = channel_id;
                             send(currentfd, &initial_package, sizeof(struct chat_packet), 0); // Server sends channel id back
                             char *channels_string = build_channels_list_for_client();
+                            //printf("Sending to every client: %s\n", channels_string);
                             int recipient;
                             for (recipient=0; recipient<=fdmax; ++recipient) {
                                 if (FD_ISSET(recipient, &masterfds) && recipient != listen_sock) {
@@ -301,8 +302,9 @@ char * build_channels_list_for_client() {
     int i;
     for (i=0; i<num_channels; ++i) {
         snprintf(buffer, sizeof(buffer), "%d,", channel_list[i]->channel_id);
-        if (channels_string_len + strlen(buffer) >= channels_string_len_max) {
-            channels_string = (char *) realloc(channels_string, (channels_string_len_max + CHANNEL_STRING_LEN_INCREMENT) * sizeof(char));
+        if (channels_string_len + strlen(buffer) + 2 >= channels_string_len_max) {
+            channels_string_len_max += CHANNEL_STRING_LEN_INCREMENT;
+            channels_string = (char *) realloc(channels_string, channels_string_len_max * sizeof(char));
         }
         strncpy(channels_string + channels_string_len, buffer, strlen(buffer));
         channels_string_len += strlen(buffer);
