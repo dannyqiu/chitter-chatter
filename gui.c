@@ -97,6 +97,9 @@ gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
 }
 
 void on_channel_selection_changed(GtkWidget *selection, gpointer data){
+    if(gtk_tree_selection_count_selected_rows(GTK_TREE_SELECTION(selection)) == 0){
+        return;
+    }
     gchar * selected_channel = get_selected_channel(GTK_TREE_MODEL(channels), GTK_TREE_SELECTION(selection));
     if(selected_channel == NULL){
         g_print("NULL!!\n");
