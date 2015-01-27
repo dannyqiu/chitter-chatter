@@ -86,7 +86,7 @@
                     <packing>
                         <property name="left-attach">0</property>
                         <property name="top-attach">1</property>
-                        <property name="height">10</property>
+                        <property name="height">19</property>
                     </packing>
                 </child>
                 <child>
@@ -106,7 +106,7 @@
                     <packing>
                         <property name="left-attach">1</property>
                         <property name="top-attach">0</property>
-                        <property name="height">10</property>
+                        <property name="height">19</property>
                     </packing>
                 </child>
                 <child>
@@ -118,7 +118,7 @@
                     </object>
                     <packing>
                         <property name="left-attach">1</property>
-                        <property name="top-attach">10</property>
+                        <property name="top-attach">19</property>
                     </packing>
                 </child>
                 <child>
@@ -131,7 +131,7 @@
                                 <property name="model">users</property>
                                 <child>
                                     <object id="usercol" class="GtkTreeViewColumn">
-                                        <property name="title">Users in Channel</property>
+                                        <property name="title">Joined Channels</property>
                                         <property name="expand">True</property>
                                         <child>
                                             <object id="user-renderer" class="GtkCellRendererText"/>
@@ -152,7 +152,7 @@
                     <packing>
                         <property name="left-attach">2</property>
                         <property name="top-attach">0</property>
-                        <property name="height">11</property>
+                        <property name="height">20</property>
                     </packing>
                 </child>
             </object>
