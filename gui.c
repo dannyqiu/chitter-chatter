@@ -111,9 +111,6 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
 
     if(selected_channel_id != current_channel_id){
         
-        //clear chatlog
-        gtk_text_buffer_set_text(chat_buffer,"",0);
-        
         if (!is_channel_in_client_channels(selected_channel_id)) {
             GtkWidget *dialog;
             GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
@@ -122,6 +119,9 @@ void on_channel_selection_changed(GtkWidget *selection, gpointer data){
             gint response = gtk_dialog_run(GTK_DIALOG(dialog));
             switch (response){
                 case GTK_RESPONSE_YES:
+                    //clear chatlog
+                    gtk_text_buffer_set_text(chat_buffer,"",0);
+                    
                     send_join_channel_to_server(client_sock,client_id,selected_channel_id); 
                     current_channel_id = selected_channel_id;
                     
