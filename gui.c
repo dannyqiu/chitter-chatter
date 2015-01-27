@@ -36,11 +36,12 @@ gchar * construct_message(gchar *display_name, gchar *message) {
 
 void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message) {
     GtkTextIter chat_end;
+    GtkTextMark *mark;
     gtk_text_buffer_get_end_iter(chat_buffer, &chat_end);
-    
-    //insert message to chatlog
-    //g_print("Append: %s\n",message);
+    mark = gtk_text_mark_new(NULL,FALSE);
+    gtk_text_buffer_add_mark(chat_buffer, mark, &chat_end);
     gtk_text_buffer_insert(chat_buffer, &chat_end, message, -1);
+    gtk_text_view_scroll_mark_onscreen((GtkTextView *)chatlog, mark);
 }
 
 void change_display_name(const gchar *name){
