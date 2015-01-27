@@ -10,6 +10,13 @@ GObject *chatbox;
 GObject *users;
 GObject *channels;
 GtkTextBuffer *buffer;
+gchar display_name[DISPLAY_NAME_SIZE];
+//Popup Dialog
+GtkWidget *grid;
+GtkWidget *name_dialog;
+GtkWidget *name_entry;
+GtkWidget *label;
+GtkWidget *content_area;
 
 int client_id;
 int client_sock;
@@ -17,7 +24,6 @@ GIOChannel *client_gchannel;
 
 void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
     GtkTextIter chat_end;
-    gchar * display_name = "bob";
     gchar timestamp[TIMESTAMP_SIZE]; //placeholders
     time_t current_time;
     struct tm *timeinfo;
@@ -61,6 +67,10 @@ GtkTextBuffer* get_chat_log(GtkEntry *chatbox){
     //g_print("Got buffer\n");
    
     return chat_buffer;
+}
+
+void change_display_name(const gchar *name){
+    g_strlcpy(display_name, name, DISPLAY_NAME_SIZE);
 }
 
 void on_channel_selection_changed(GtkWidget *widget, gpointer data){
@@ -150,46 +160,22 @@ int main (int argc, char *argv[]) {
 
     add_item_to_list((GtkListStore*)channels, (gchar*)"a channel");
     add_item_to_list((GtkListStore*)users, (gchar*)"admin");
-    
-    //gint response = gtk_dialog_run(GTK_DIALOG(dialog));
-    //Name Grabber
-    /*
-    GtkBuilder *dialog_builder;
-    GObject *dialog;
-
-    dialog_builder = gtk_builder_new();
-    gtk_builder_add_from_file(dialog_builder, "dialog_builder.ui", NULL);
-    gtk_builder_connect_signals(dialog_builder, NULL);
-    */
-    //dialog = gtk_builder_get_object(dialog_builder, "dialog1");
-    //gint response = gtk_dialog_run(GTK_DIALOG(dialog));
-    
-    GtkWidget *grid;
-    GtkWidget *name_dialog;
-    GtkWidget *name_entry;
-    GtkWidget *label;
-    GtkWidget *content_area;
-
-    //grid = gtk_grid_new();
-
+   
+    //Popup Window Code here
     label = gtk_label_new("Enter your desired display name.");
 
     name_entry = gtk_entry_new();
     gtk_entry_set_visibility(GTK_ENTRY(name_entry) , TRUE);
     gtk_entry_set_max_length(GTK_ENTRY(name_entry) , 20);
-
-    //gtk_grid_attach(GTK_GRID(grid), name, 0,0,1,1);
     
     GtkDialogFlags flags = GTK_DIALOG_MODAL;
     
     name_dialog = gtk_dialog_new_with_buttons("Chitter-Chatter", GTK_WINDOW(window),
 					 flags, "Submit", GTK_RESPONSE_ACCEPT, NULL);
-    //name_dialog = gtk_dialog_new();
+    
     content_area = gtk_dialog_get_content_area(GTK_DIALOG(name_dialog));
     gtk_box_pack_start(GTK_BOX(content_area), label, TRUE, TRUE, 5); 
     gtk_box_pack_start(GTK_BOX(content_area), name_entry, TRUE, TRUE, 5); 
-    
-    //gtk_dialog_add_button(GTK_DIALOG(name_dialog), "Enter", 1);
     
     gtk_window_set_transient_for(GTK_WINDOW(name_dialog),GTK_WINDOW(window));
 
@@ -197,7 +183,8 @@ int main (int argc, char *argv[]) {
     gint response = gtk_dialog_run(GTK_DIALOG(name_dialog));
     
     if(response == GTK_RESPONSE_ACCEPT){
-      gtk_widget_destroy(name_dialog);
+        change_display_name(gtk_entry_get_text(GTK_ENTRY(name_entry)));
+        gtk_widget_destroy(name_dialog);
     }
 
     client_id = connect_to_server(&client_sock);

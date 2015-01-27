@@ -15,8 +15,6 @@
 #include <sys/sem.h>
 #include "constants.h"
 
-extern char *display_name;
-
 void cleanup();
 
 int connect_to_server(int *);
