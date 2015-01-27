@@ -10,6 +10,7 @@ GObject *chatbox;
 GObject *users;
 GObject *channels;
 GtkTextBuffer *buffer;
+gchar display_name[DISPLAY_NAME_SIZE];
 
 int client_id;
 int client_sock;
@@ -17,7 +18,6 @@ GIOChannel *client_gchannel;
 
 void append_to_chat_log(GtkTextBuffer *chat_buffer, gchar *message){
     GtkTextIter chat_end;
-    gchar * display_name = "bob";
     gchar timestamp[TIMESTAMP_SIZE]; //placeholders
     time_t current_time;
     struct tm *timeinfo;
@@ -63,8 +63,8 @@ GtkTextBuffer* get_chat_log(GtkEntry *chatbox){
     return chat_buffer;
 }
 
-void change_display_name(char *name){
-    display_name = name;
+void change_display_name(const gchar *name){
+    g_strlcpy(display_name, name, DISPLAY_NAME_SIZE);
 }
 
 void on_channel_selection_changed(GtkWidget *widget, gpointer data){
@@ -182,7 +182,7 @@ int main (int argc, char *argv[]) {
     gint response = gtk_dialog_run(GTK_DIALOG(name_dialog));
     
     if(response == GTK_RESPONSE_ACCEPT){
-        change_display_name((char *)gtk_entry_get_text(GTK_ENTRY(name_entry)));
+        change_display_name(gtk_entry_get_text(GTK_ENTRY(name_entry)));
         gtk_widget_destroy(name_dialog);
     }
 
