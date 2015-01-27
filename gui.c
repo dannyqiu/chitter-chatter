@@ -227,6 +227,8 @@ gboolean receive_data_from_server(GIOChannel *source, GIOCondition condition, gp
             recv(client_sock, &package, sizeof(struct chat_packet), 0);
             strncpy(recv_message + (package.sequence * MSG_SIZE), package.message, MSG_SIZE);
         }
+        GtkTextBuffer *chat_buffer = gtk_text_view_get_buffer((GtkTextView *) chatlog);
+        append_to_chat_log(chat_buffer, recv_message);
         g_print("\nReceived: %s\n", recv_message);
         free(recv_message);
     }
