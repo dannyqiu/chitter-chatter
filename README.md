@@ -7,7 +7,7 @@ An upgrade to instant messaging where channels are in style. Create a channel, h
 
 - [GTK+](http://www.gtk.org)
     - Install on Ubuntu using `sudo apt-get install build-essential gnome-devel`
-    - Other platforms need to have GTK+ compiled indepently. See installation details [http://www.gtk.org/download/index.php](here)
+    - Other platforms need to have GTK+ compiled indepently. See installation details [here](http://www.gtk.org/download/index.php)
 
 ### Running
 
