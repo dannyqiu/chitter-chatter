@@ -19,14 +19,15 @@ extern char *display_name;
 
 void cleanup();
 
-void add_channel(int);
-
+int connect_to_server(int *);
 void send_message_to_server(int, char *, size_t);
 void send_join_channel_to_server(int, int);
 void send_create_channel_to_server(int, char *);
 
 int get_current_channel();
 void change_current_channel(int);
+int * get_channels();
+void add_channel(int);
 
 #define SHM_KEY_FILE "Makefile"
 #define SEM_KEY_FILE "README.md"
