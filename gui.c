@@ -7,6 +7,8 @@ GtkBuilder *builder;
 GObject *chatlog;
 GObject *window;
 GObject *chatbox;
+GObject *channeltree;
+GObject *userchanneltree;
 GObject *users;
 GObject *channels;
 GtkTextBuffer *buffer;
@@ -83,8 +85,34 @@ void on_create_channel_clicked(GtkWidget *widget, gpointer data){
     //g_free(channel_name);
 }
 
-void on_channel_selection_changed(GtkWidget *widget, gpointer data){
-    g_print("Selected available channel.\n");
+gchar* get_selected_channel(GtkTreeModel *list, GtkTreeSelection *selection){
+    GtkTreeIter iter;
+    gchar *channel_name = malloc(1024);
+
+    gtk_tree_selection_get_selected(selection, &list, &iter);
+    gtk_tree_model_get(list, &iter, 0, channel_name, -1);
+    return channel_name;
+}
+
+void on_channel_selection_changed(GtkWidget *selection, gpointer data){
+    gchar *channel_name =  get_selected_channel(GTK_TREE_MODEL(channels), GTK_TREE_SELECTION(selection));
+
+    GtkWidget *dialog;
+    GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
+    dialog = gtk_message_dialog_new(GTK_WINDOW(window), flags, GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, "Do you want to join this channel?");
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    switch (response){
+        case GTK_RESPONSE_YES:
+            send_join_channel_to_server(client_sock,client_id,strtol(channel_name,NULL,0)); 
+            gtk_widget_destroy(dialog);
+            g_print("Selected available channel.\n");
+            break;
+        default:
+            g_print("No change.\n");
+            gtk_widget_destroy(dialog);
+            break;
+    }
 }
 
 void on_user_channel_selection_changed(GtkWidget *widget, gpointer data){
@@ -159,6 +187,8 @@ int main (int argc, char *argv[]) {
     window = gtk_builder_get_object(builder, "window");
     chatlog = gtk_builder_get_object(builder, "chatlog");
     chatbox = gtk_builder_get_object(builder, "chatbox");
+    channeltree = gtk_builder_get_object(builder, "channeltree"); 
+    userchanneltree = gtk_builder_get_object(builder, "userchanneltree"); 
     channels = gtk_builder_get_object(builder, "channels");
     users = gtk_builder_get_object(builder, "users");
      
